@@ -1,7 +1,7 @@
 # aijaznazir.github.io
+Hey there!
 
-Personal academic research website of Aijaz Nazir - PhD Student in Mathematics at the University of Houston.
-
+This is Aijaz Nazir - PhD Student in Mathematics at the University of Houston.
 
 ## About
 
@@ -12,5 +12,5 @@ I am a Ph.D. student at the Department of Mathematics, University of Houston, re
 - Physics-Informed Neural Networks (PINNs)
 - Data-driven approaches to dynamical systems
 
-For more information, visit the deployed site at: https://aijaznazir.github.io/
+For more information, visit the site at: https://aijaznazir.github.io/
 
