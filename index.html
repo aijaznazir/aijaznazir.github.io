@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Aijaz Nazir — PhD Student in Mathematics at the University of Houston. Research in scientific machine learning, subgrid closure modeling, operator learning, an[...]
+  <title>Aijaz Nazir | Mathematics × Scientific Computing × ML</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="mathCanvas" aria-hidden="true"></canvas>
+  <div class="noise"></div>
+
+  <header class="nav">
+    <a class="brand" href="#top"><span>AN</span><b>Aijaz Nazir</b></a>
+    <nav>
+      <a href="#research">Research</a>
+      <a href="#projects">Projects</a>
+      <a href="#notes">Notes</a>
+      <a href="#about">About</a>
+      <a class="nav-cta" href="#contact">Contact</a>
+    </nav>
+    <button class="menu" aria-label="Open menu">☰</button>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow"><i></i> PhD Student · Mathematics · University of Houston</div>
+        <h1>Mathematics<br><span>×</span> Scientific Computing<br><span>×</span> Machine Learning</h1>
+        <p class="lead">I study how mathematical structure can guide modern learning algorithms for complex dynamical systems, multiscale PDEs, and network models.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#research">Explore research <span>↗</span></a>
+          <a class="button ghost" href="cv.pdf">View CV</a>
+        </div>
+        <div class="hero-tags">
+          <span>Scientific ML</span><span>Neural Operators</span><span>PDEs</span><span>PINNs</span>
+        </div>
+      </div>
+      <div class="hero-equation">
+        <div class="equation-card">
+          <div class="eq-top"><span>STRUCTURE → LEARNING</span><span>01</span></div>
+          <div class="eq">∂<sub>t</sub>u + 𝒩(u) = f</div>
+          <div class="eq-small">u<sub>θ</sub> = 𝒢<sub>θ</sub>(a)</div>
+          <div class="eq-caption">Physics-informed and structure-preserving<br>learning for dynamical systems.</div>
+          <div class="orbit o1"></div><div class="orbit o2"></div><div class="node n1"></div><div class="node n2"></div><div class="node n3"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ticker"><div>SUBGRID CLOSURE</div><div>STRUCTURE-PRESERVING NN</div><div>OPERATOR LEARNING</div><div>GAS NETWORKS</div><div>DATA-DRIVEN DYNAMICS</div><div>PINNs</div></section>
+
+    <section id="research" class="section">
+      <div class="section-head"><div><span class="label">01 / RESEARCH</span><h2>Where mathematics<br>meets learning.</h2></div><p>My research explores machine-learning methods that respect the ma[...]
+      <div class="research-grid">
+        <article class="research-card featured"><div class="card-number">01</div><div class="card-icon">∇</div><h3>Subgrid Closure Modeling</h3><p>Structure-preserving neural networks for modeli[...]
+        <article class="research-card"><div class="card-number">02</div><div class="card-icon">𝒢</div><h3>Operator Learning</h3><p>Learning mappings between function spaces to build efficient s[...]
+        <article class="research-card"><div class="card-number">03</div><div class="card-icon">⟷</div><h3>Gas Network Dynamics</h3><p>Data-driven approaches to dynamical modeling, prediction, an[...]
+        <article class="research-card"><div class="card-number">04</div><div class="card-icon">Φ</div><h3>Physics-Informed Learning</h3><p>PINNs and related methods that combine observations with[...]
+      </div>
+    </section>
+
+    <section id="projects" class="section projects">
+      <div class="section-head"><div><span class="label">02 / PROJECTS</span><h2>Research in<br>computation.</h2></div><p>Code, experiments, and computational tools supporting my research.</p></di[...]
+      <div class="project-list">
+        <a class="project" href="https://github.com/" target="_blank" rel="noopener"><div class="project-index">01</div><div><h3>Structure-Preserving Neural Networks</h3><p>Neural architectures de[...]
+        <a class="project" href="https://github.com/" target="_blank" rel="noopener"><div class="project-index">02</div><div><h3>Subgrid Closure Models</h3><p>Data-driven closures for unresolved s[...]
+        <a class="project" href="https://github.com/" target="_blank" rel="noopener"><div class="project-index">03</div><div><h3>Operator Learning for Gas Networks</h3><p>Learning system-level map[...]
+      </div>
+    </section>
+
+    <section class="statement">
+      <div class="statement-mark">"</div>
+      <blockquote>The goal is not simply to make a model learn — but to make it learn <em>the right mathematics.</em></blockquote>
+      <p>— Research philosophy</p>
+    </section>
+
+    <section id="notes" class="section notes">
+      <div class="section-head"><div><span class="label">03 / NOTES</span><h2>Mathematics,<br>made clearer.</h2></div><p>Expository notes and computational explanations on topics I am learning and[...]
+      <div class="notes-grid">
+        <article><span>NUMERICAL ANALYSIS</span><h3>Variational Multiscale Methods</h3><p>Understanding resolved and unresolved scales in variational formulations.</p><a href="#">Read note →</a>[...]
+        <article><span>SCIENTIFIC ML</span><h3>What Is Operator Learning?</h3><p>From finite-dimensional neural networks to maps between function spaces.</p><a href="#">Read note →</a></article>
+        <article><span>DEEP LEARNING</span><h3>Physics-Informed Neural Networks</h3><p>How differential equations become part of the learning problem.</p><a href="#">Read note →</a></article>
+      </div>
+    </section>
+
+    <section id="about" class="about section">
+      <div><span class="label">04 / ABOUT</span><h2>A mathematician<br>building with computation.</h2></div>
+      <div><p>I am <strong>Aijaz Nazir</strong>, a PhD student in Mathematics at the <strong>University of Houston</strong>. My interests sit at the intersection of numerical analysis, partial dif[...]
+    </section>
+
+    <section id="contact" class="contact">
+      <div class="contact-inner"><span class="label">05 / CONTACT</span><h2>Let's talk<br><span>mathematics.</span></h2><p>Interested in research, collaboration, or scientific machine learning?</p[...]
+    </section>
+  </main>
+
+  <footer><span>© 2026 Aijaz Nazir</span><span>Mathematics · Computing · Learning</span></footer>
+  <script src="script.js"></script>
+</body>
+</html>
