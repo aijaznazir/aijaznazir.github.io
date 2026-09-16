@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Aijaz Nazir — Teaching and publications. PhD Student in Mathematics at the University of Houston.">
+  <title>Teaching & Publications | Aijaz Nazir</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="mathCanvas" aria-hidden="true"></canvas>
+  <div class="noise"></div>
+
+  <header class="nav">
+    <a class="brand" href="index.html#top"><span>AN</span><b>Aijaz Nazir</b></a>
+    <nav>
+      <a href="index.html#research">Research</a>
+      <a href="index.html#projects">Projects</a>
+      <a href="index.html#notes">Notes</a>
+      <a href="teaching-publications.html#publications">Publications</a>
+      <a href="teaching-publications.html#teaching">Teaching</a>
+      <a href="index.html#about">About</a>
+      <a class="nav-cta" href="contact.html">Contact</a>
+    </nav>
+    <button class="menu" aria-label="Open menu">☰</button>
+  </header>
+
+  <main id="top">
+    <section class="hero" style="padding-bottom: 2rem;">
+      <div class="hero-copy">
+        <div class="eyebrow"><i></i> Teaching &amp; Publications</div>
+        <h1>Coursework taught,<br><span>&</span> research published.</h1>
+        <p class="lead">Course materials I've developed as an instructor, and papers from my research on structure-preserving machine learning for PDEs and epidemiological modeling.</p>
+      </div>
+    </section>
+
+    <section id="publications" class="section">
+      <div class="section-head">
+        <div><span class="label">01 / PUBLICATIONS</span><h2>Papers &amp;<br>preprints.</h2></div>
+        <p>Peer-reviewed and submitted work in scientific machine learning and computational epidemiology.</p>
+      </div>
+      <div class="project-list">
+        <a class="project" href="https://doi.org/10.3390/math14142627" target="_blank" rel="noopener noreferrer">
+          <div class="project-index">01</div>
+          <div>
+            <h3>Subgrid-Scale Parameterization in Burgers' Equation Using Structure-Preserving Neural Networks and Entropy Variables</h3>
+            <p>A. Nazir, I. Timofeyev — <em>Mathematics</em> (MDPI), 2026</p>
+          </div>
+        </a>
+        <div class="project" style="cursor: default;">
+          <div class="project-index">02</div>
+          <div>
+            <h3>Age-Structured COVID-19 Modeling Using Physics-Informed Neural Networks</h3>
+            <p>A. Nazir, M. N. Raihen, M. A. Kadir — Under review</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="teaching" class="section">
+      <div class="section-head">
+        <div><span class="label">02 / TEACHING</span><h2>Instructor of<br>record.</h2></div>
+        <p>Course design, lecture materials, and computational instruction.</p>
+      </div>
+      <div class="notes-grid">
+        <article>
+          <span>MATH 2131 · 2026</span>
+          <h3>Linear Algebra with MATLAB</h3>
+          <p>Instructor of record for all of 2026. A first course in linear algebra — vector spaces, matrix decompositions, eigenvalues — taught alongside hands-on MATLAB computation. Developed a full 14-week course outline, Beamer lecture slides, the Canvas course page, and MATLAB setup/download instructions for students.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="teaching-assistant" class="section">
+      <div class="section-head">
+        <div><span class="label">02B / TEACHING ASSISTANT</span><h2>Tutoring, grading<br>& recitation.</h2></div>
+        <p>Support roles across data science, calculus, and an intensive summer math program.</p>
+      </div>
+      <div class="notes-grid">
+        <article>
+          <span>Computational Statistics (Grad) · Fall 2026</span>
+          <h3>Computational Statistics</h3>
+          <p>Teaching assistant for this graduate-level course on computational approaches to statistical inference — simulation, resampling, and numerical methods for statistical estimation.</p>
+        </article>
+        <article>
+          <span>MATH 4322 · Fall 2023 – Fall 2025</span>
+          <h3>Introduction to Data Science and Machine Learning</h3>
+          <p>Tutor/Grader across four semesters (Fall 2023, Spring 2024, Fall 2024, Fall 2025). An undergraduate introduction to statistical learning — regression, classification, and core ML algorithms — applied to real datasets.</p>
+        </article>
+        <article>
+          <span>MATH 2415 · Spring 2023</span>
+          <h3>Advanced Calculus III</h3>
+          <p>Recitation instructor. Multivariable and vector calculus: partial derivatives, multiple integrals, and the theorems of Green, Stokes, and Gauss.</p>
+        </article>
+        <article>
+          <span>MATH 2413 · Fall 2022</span>
+          <h3>Calculus I</h3>
+          <p>Recitation instructor. Single-variable differential and integral calculus for first-year students.</p>
+        </article>
+        <article>
+          <span>MTTS · May – Jul 2022</span>
+          <h3>Mathematics Training and Talent Search Programme</h3>
+          <p>Grader for this intensive summer programme in India, aimed at strengthening the mathematical foundations of promising undergraduate and graduate students.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer><span>© 2026 Aijaz Nazir</span><span>Mathematics · Computing · Learning</span></footer>
+  <script src="script.js"></script>
+</body>
+</html>
