@@ -1,6 +1,6 @@
 const canvas=document.getElementById("mathCanvas"),ctx=canvas.getContext("2d");
 let w,h,dots=[];
-function resize(){w=canvas.width=innerWidth;h=canvas.height=innerHeight;dots=Array.from({length:45},()=>({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,r:M[...]
-function draw(){ctx.clearRect(0,0,w,h);ctx.fillStyle="rgba(183,255,60,.5)";for(const p of dots){p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>w)p.vx*=-1;if(p.y<0||p.y>h)p.vy*=-1;ctx.beginPath();ctx.arc(p.x,p.y[...]
+function resize(){w=canvas.width=innerWidth;h=canvas.height=innerHeight;dots=Array.from({length:45},()=>({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,r:Math.random()*1.6+.4}))}
+function draw(){ctx.clearRect(0,0,w,h);ctx.fillStyle="rgba(183,255,60,.5)";for(const p of dots){p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>w)p.vx*=-1;if(p.y<0||p.y>h)p.vy*=-1;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill()}for(let i=0;i<dots.length;i++)for(let j=i+1;j<dots.length;j++){const a=dots[i],b=dots[j],dx=a.x-b.x,dy=a.y-b.y,dist=Math.hypot(dx,dy);if(dist<125){ctx.strokeStyle=`rgba(110,120,135,${(1-dist/125)*.12})`;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()}}requestAnimationFrame(draw)}
 addEventListener("resize",resize);resize();draw();
-document.querySelector(".menu").addEventListener("click",()=>{const n=document.querySelector(".nav nav");n.style.display=n.style.display==="flex"?"none":"flex";n.style.position="absolute";n.style.t[...]
+document.querySelector(".menu").addEventListener("click",()=>{const n=document.querySelector(".nav nav");n.style.display=n.style.display==="flex"?"none":"flex";n.style.position="absolute";n.style.top="70px";n.style.right="28px";n.style.flexDirection="column";n.style.background="#0b0e13";n.style.padding="20px";n.style.border="1px solid #292f38"});
