@@ -73,6 +73,7 @@
       <span><span class="sw j"></span>where \(\hat\jmath\) lands (drag)</span>
       <span><span class="sw v"></span>\(\vec v\) before (dashed, drag) and \(L(\vec v)\) after</span>
       <span><span class="sw g"></span>the moved grid</span>
+      <span><span class="sw e"></span>the line y = mx + c</span>
     </div>
     <div class="la-row">
       <div><span class="lbl">Matrix</span><div id="mat"></div></div>
@@ -85,7 +86,28 @@
           <button data-m="2,0,0,0.5">stretch</button>
           <button data-m="-1,0,0,1">reflect</button>
           <button data-m="1,2,0.5,1">squish</button>
+          <button data-m="0.5,0.5,0.5,0.5">project onto y = x</button>
         </div>
+      </div>
+    </div>
+    <div class="la-row">
+      <div>
+        <span class="lbl">Across the line y = m x + c</span>
+        <div class="presets" id="linemode">
+          <button data-mode="reflect">reflect across it</button>
+          <button data-mode="project">project onto it</button>
+          <button data-mode="off">off</button>
+        </div>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="control">
+        <label for="lm">Slope m <output id="lm-out"></output></label>
+        <input type="range" id="lm" min="-4" max="4" step="0.1" value="0.5">
+      </div>
+      <div class="control">
+        <label for="lc">Intercept c <output id="lc-out"></output></label>
+        <input type="range" id="lc" min="-3" max="3" step="0.1" value="0">
       </div>
     </div>
     <div class="buttons">
@@ -100,6 +122,8 @@
         <li>Drag the lime and orange arrow tips. The matrix columns change with them, because they are the same numbers.</li>
         <li>Drag the dashed yellow input \(\vec v\) to \((2, 1)\). Its image is exactly twice the lime arrow plus the orange arrow.</li>
         <li>Pick "squish": the two columns point along the same line, and the whole plane is flattened onto it.</li>
+        <li>Reflect across y = mx + c with c = 0, then move the c slider. As soon as c ≠ 0 the origin itself jumps off, and the matrix is no longer the whole story.</li>
+        <li>Project onto the line and drag \(\vec v\). The dashed magenta segment from \(\vec v\) to its image always meets the line at a right angle.</li>
       </ul>
     </div>
   </div>
@@ -108,6 +132,21 @@
   <p><strong>Rotation by 90°.</strong> \(\hat\imath\) swings up to \((0, 1)\) and \(\hat\jmath\) swings left to \((-1, 0)\), so the matrix is \(\begin{bmatrix} 0 & -1 \\ 1 & 0\end{bmatrix}\). Nothing to memorize: you can read off where the arrows went.</p>
   <p><strong>Shear.</strong> \(\hat\imath\) stays put and \(\hat\jmath\) tips over to \((1, 1)\): \(\begin{bmatrix} 1 & 1 \\ 0 & 1\end{bmatrix}\). Horizontal lines slide sideways by an amount proportional to their height.</p>
   <p><strong>Squish.</strong> If the two columns are parallel, say \((1, 0.5)\) and \((2, 1)\), every output \(x\,\text{col}_1 + y\,\text{col}_2\) lies on their common line. The 2D plane is flattened onto 1D, and chapter 5 is about what that costs.</p>
+
+  <h2>Reflecting and projecting across a line</h2>
+  <p>Take a line through the origin with slope \(m\), so it points along \((1, m)\). Write \(\hat u = (1, m)/\sqrt{1+m^2}\) for the unit vector along it.</p>
+  <p><strong>Projection</strong> drops every vector straight onto the line: keep the part along \(\hat u\), discard the part perpendicular to it. The part along \(\hat u\) is \((\hat u\cdot\vec x)\,\hat u\). Applying that to \(\hat\imath\) and \(\hat\jmath\) gives the two columns:</p>
+  $$P = \frac{1}{1+m^2}\begin{bmatrix} 1 & m \\ m & m^2 \end{bmatrix}.$$
+  <p>Both columns are multiples of \((1, m)\), so they are parallel: a projection is a squish onto its line. Doing it twice changes nothing, \(P^2 = P\), because a vector already on the line stays put.</p>
+  <p><strong>Reflection</strong> moves each vector to the projection and then the same distance again: \(\vec x \mapsto \vec x + 2(P\vec x - \vec x)\). So</p>
+  $$R = 2P - I = \frac{1}{1+m^2}\begin{bmatrix} 1 - m^2 & 2m \\ 2m & m^2 - 1 \end{bmatrix}.$$
+  <p>For \(m = 1\), the line \(y = x\), this is \(\begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}\): \(\hat\imath\) and \(\hat\jmath\) swap places, as they should. Reflecting twice returns every vector, \(R^2 = I\). (A vertical line has no slope, so it is not of the form \(y = mx + c\); the "reflect" preset above, across the \(y\)-axis, covers it.)</p>
+
+  <h3>When the line misses the origin</h3>
+  <p>For \(y = mx + c\) with \(c \neq 0\) the line no longer passes through the origin, and reflecting across it sends the origin to its mirror image on the other side of the line. A linear transformation always keeps the origin fixed, since \(L(\vec 0) = L(0\cdot\vec 0) = 0\cdot L(\vec 0) = \vec 0\). So this reflection is <em>not</em> linear, and no 2×2 matrix can describe it.</p>
+  <p>It is still close. The line passes through \(\vec p_0 = (0, c)\). Shift so that \(\vec p_0\) sits at the origin, reflect across the parallel line through the origin, then shift back:</p>
+  $$T(\vec x) = R(\vec x - \vec p_0) + \vec p_0 = R\vec x + \vec b, \qquad \vec b = (I - R)\,\vec p_0 = \frac{2c}{1+m^2}\begin{bmatrix} -m \\ 1 \end{bmatrix}.$$
+  <p>A linear map followed by a shift is called an <em>affine</em> map, and projection onto \(y = mx + c\) works the same way, with \(P\) in place of \(R\) and half the shift. The visualizer shows the matrix part in the inputs and the shift \(\vec b\) separately, and marks where the origin lands. Grid lines still stay straight, parallel and evenly spaced; the only thing lost is the fixed origin. Graphics software handles such maps by adding a third coordinate equal to 1, which turns \(T\) into a 3×3 matrix \(\begin{bmatrix} R & \vec b \\ 0 & 1 \end{bmatrix}\) acting linearly one dimension up.</p>
 
   <div class="note">
     <strong>About the animation.</strong> "Play" slides each matrix entry linearly from the identity to its target, so frame \(t\) shows the transformation \((1-t)I + tA\). The intermediate frames are only a way to watch the motion, not part of the transformation. For a rotation they briefly shrink the plane: the entries travel in straight lines rather than around a circle, so halfway to a 90° turn the frame is a 45° turn combined with a shrink by \(1/\sqrt2\).
@@ -125,52 +164,111 @@
 (function () {
   "use strict";
   const L = LA, $ = (id) => document.getElementById(id);
-  const st = { m: [2, -1, 1, 1], v: [1, 2], t: 1, playing: false };
+  // m: the linear part; shift: added afterwards (nonzero only for a line that misses the origin)
+  const st = { m: [2, -1, 1, 1], shift: [0, 0], v: [1, 2], t: 1, playing: false, mode: null, lm: 0.5, lc: 0 };
 
   const P = new L.Plane($("cv"), { range: 5, draw, onDrag: update });
   window.__plane = P;
   const still = () => !st.playing;
+  const free = () => !st.playing && !st.mode;
 
-  P.addHandle({ get: () => L.col1(st.m), set: (x, y) => { st.m[0] = x; st.m[2] = y; mat.set(st.m); }, color: "--la-i", enabled: still });
-  P.addHandle({ get: () => L.col2(st.m), set: (x, y) => { st.m[1] = x; st.m[3] = y; mat.set(st.m); }, color: "--la-j", enabled: still });
+  P.addHandle({ get: () => L.col1(st.m), set: (x, y) => { st.m[0] = x; st.m[2] = y; mat.set(st.m); }, color: "--la-i", enabled: free });
+  P.addHandle({ get: () => L.col2(st.m), set: (x, y) => { st.m[1] = x; st.m[3] = y; mat.set(st.m); }, color: "--la-j", enabled: free });
   P.addHandle({ get: () => st.v, set: (x, y) => { st.v = [x, y]; }, color: "--la-v", enabled: still });
 
-  const mat = L.MatrixInput($("mat"), { value: st.m, onChange: (m) => { st.m = m; st.t = 1; update(); } });
+  const mat = L.MatrixInput($("mat"), { value: st.m, onChange: (m) => { st.m = m; st.t = 1; lineOff(); update(); } });
+
+  /* ---------- reflection / projection across y = m x + c ----------
+     P0 = projection onto the parallel line through the origin, direction (1, m):
+       P0 = 1/(1+m²) [[1, m], [m, m²]],   reflection R0 = 2 P0 − I.
+     The line y = m x + c passes through p0 = (0, c). Measuring from p0:
+       project:  x ↦ P0 (x − p0) + p0 = P0 x + (I − P0) p0
+       reflect:  x ↦ R0 (x − p0) + p0 = R0 x + 2 (I − P0) p0
+     with (I − P0) p0 = c/(1+m²) · (−m, 1).                                   */
+  function lineMap(mode, m, c) {
+    const k = 1 / (1 + m * m);
+    const P0 = [k, k * m, k * m, k * m * m];
+    const off = [-c * m * k, c * k];
+    if (mode === "project") return { m: P0, shift: off };
+    return { m: [2 * P0[0] - 1, 2 * P0[1], 2 * P0[2], 2 * P0[3] - 1], shift: L.scale(off, 2) };
+  }
+  function lineOff() {
+    st.mode = null;
+    st.shift = [0, 0];
+    syncLineUI();
+  }
+  function syncLineUI() {
+    $("lm-out").textContent = L.fmt(st.lm);
+    $("lc-out").textContent = L.fmt(st.lc);
+    document.querySelectorAll("#linemode button").forEach((b) => b.classList.toggle("on", b.dataset.mode === (st.mode || "off")));
+  }
+  function applyLine(animate) {
+    const r = lineMap(st.mode, st.lm, st.lc);
+    st.m = r.m;
+    st.shift = r.shift;
+    mat.set(st.m);
+    update();
+    if (animate) play();
+  }
+
+  const T = (M, sh, v) => L.add(L.apply(M, v), sh); // the full (possibly affine) map
 
   function draw(P) {
     P.baseGrid();
-    const M = L.lerp(L.I, st.m, st.t);
-    P.grid(M);
-    const ih = L.col1(M), jh = L.col2(M), Lv = L.apply(M, st.v);
+    const M = L.lerp(L.I, st.m, st.t), sh = L.scale(st.shift, st.t);
+    P.grid(M, { shift: sh });
+    if (st.mode) {
+      // the mirror / target line y = m x + c, drawn over the grid (a projection collapses the grid onto it)
+      P.line([1, st.lm], { through: [0, st.lc], color: "--la-eig", width: 2.5, alpha: 0.95 });
+    }
+    const ih = L.col1(M), jh = L.col2(M), Tv = T(M, sh, st.v);
     P.arrow(st.v, { color: "--la-v", width: 2, dash: [5, 5], alpha: 0.5, head: 9, label: "v" });
+    if (st.mode && st.t === 1) P.segment(st.v, Tv, { color: "--la-eig", width: 1.5, dash: [3, 4], alpha: 0.8 });
     if ($("parts").checked) {
       const xi = L.scale(ih, st.v[0]);
-      P.arrow(xi, { color: "--la-i", width: 2, dash: [6, 5], alpha: 0.7, head: 9 });
-      P.arrow(L.scale(jh, st.v[1]), { from: xi, color: "--la-j", width: 2, dash: [6, 5], alpha: 0.7, head: 9 });
+      P.arrow(xi, { from: sh, color: "--la-i", width: 2, dash: [6, 5], alpha: 0.7, head: 9 });
+      P.arrow(L.scale(jh, st.v[1]), { from: L.add(sh, xi), color: "--la-j", width: 2, dash: [6, 5], alpha: 0.7, head: 9 });
     }
-    P.arrow(Lv, { color: "--la-v", width: 3.5, label: "L(v)" });
-    P.arrow(ih, { color: "--la-i", label: "î" });
-    P.arrow(jh, { color: "--la-j", label: "ĵ" });
+    P.arrow(L.sub(Tv, sh), { from: sh, color: "--la-v", width: 3.5, label: L.norm(st.shift) > 1e-9 ? "T(v)" : "L(v)" });
+    P.arrow(ih, { from: sh, color: "--la-i", label: "î" });
+    P.arrow(jh, { from: sh, color: "--la-j", label: "ĵ" });
+    if (L.norm(st.shift) > 1e-9) {
+      P.dot(sh, { r: 5, color: "--fg" });
+      P.text("origin lands here", sh, { dx: 10, dy: 14, color: "--fg", font: "10px 'JetBrains Mono', monospace" });
+    }
     if (st.playing) P.hud("t = " + st.t.toFixed(2));
   }
 
   function update() {
-    const m = st.m, x = st.v[0], y = st.v[1];
-    $("eq").innerHTML =
-      "v = <b>" + L.vfmt(st.v) + "</b> &nbsp;→&nbsp; L(v) = " +
+    const m = st.m, x = st.v[0], y = st.v[1], affine = L.norm(st.shift) > 1e-9;
+    let eq =
+      "v = <b>" + L.vfmt(st.v) + "</b> &nbsp;→&nbsp; " + (affine ? "T(v)" : "L(v)") + " = " +
       '<span class="cvv">' + L.fmt(x) + '</span>·<span class="ci">' + L.vfmt(L.col1(m)) + "</span> + " +
-      '<span class="cvv">' + L.fmt(y) + '</span>·<span class="cj">' + L.vfmt(L.col2(m)) + "</span> = <b>" + L.vfmt(L.apply(m, st.v)) + "</b>";
+      '<span class="cvv">' + L.fmt(y) + '</span>·<span class="cj">' + L.vfmt(L.col2(m)) + "</span>" +
+      (affine ? " + <b>" + L.vfmt(st.shift) + "</b>" : "") +
+      " = <b>" + L.vfmt(T(m, st.shift, st.v)) + "</b>";
+    if (st.mode) eq += "<br>" + (st.mode === "reflect" ? "reflection across" : "projection onto") + " <span class=\"ce\">y = " + L.fmt(st.lm) + "x " + (st.lc < 0 ? "− " + L.fmt(-st.lc) : "+ " + L.fmt(st.lc)) + "</span>" +
+      (affine ? " &nbsp;·&nbsp; shift <b>" + L.vfmt(st.shift) + "</b> (the matrix alone is not enough)" : "");
+    $("eq").innerHTML = eq;
     const s = $("status");
-    if (Math.abs(L.cross(L.col1(m), L.col2(m))) < 1e-9) {
+    if (affine) {
+      s.className = "status bad";
+      s.textContent = "c ≠ 0: the line misses the origin, so the origin itself is moved, to " + L.vfmt(st.shift) +
+        ". That is not linear, and no 2×2 matrix can do it: the map is the matrix shown, followed by a shift (an affine map).";
+    } else if (st.mode === "reflect") {
+      s.className = "status good";
+      s.textContent = "c = 0: the mirror line passes through the origin, so this reflection is linear and the matrix alone describes it.";
+    } else if (Math.abs(L.cross(L.col1(m), L.col2(m))) < 1e-9) {
       s.className = "status bad";
       s.textContent = L.norm(L.col1(m)) + L.norm(L.col2(m)) < 1e-9
         ? "Both columns are zero: every vector is sent to the origin."
-        : "The columns are parallel: the whole plane is squished onto a single line.";
+        : "The columns are parallel: the whole plane is squished onto a single line." + (st.mode === "project" ? " A projection does exactly this, onto its line." : "");
     } else {
       s.className = "status good";
       s.textContent = "The columns point in different directions, so the moved grid still covers the whole plane.";
     }
-    document.querySelectorAll("#presets button").forEach((b) => b.classList.toggle("on", L.close(b.dataset.m.split(",").map(Number), m)));
+    document.querySelectorAll("#presets button").forEach((b) => b.classList.toggle("on", !st.mode && L.close(b.dataset.m.split(",").map(Number), m)));
+    syncLineUI();
     P.render();
   }
 
@@ -183,8 +281,26 @@
   $("play").addEventListener("click", play);
   $("parts").addEventListener("change", update);
   document.querySelectorAll("#presets button").forEach((b) =>
-    b.addEventListener("click", () => { st.m = b.dataset.m.split(",").map(Number); mat.set(st.m); update(); play(); })
+    b.addEventListener("click", () => { lineOff(); st.m = b.dataset.m.split(",").map(Number); mat.set(st.m); update(); play(); })
   );
+  document.querySelectorAll("#linemode button").forEach((b) =>
+    b.addEventListener("click", () => {
+      if (b.dataset.mode === "off") { lineOff(); update(); return; }
+      st.mode = b.dataset.mode;
+      applyLine(true);
+    })
+  );
+  ["lm", "lc"].forEach((id) =>
+    $(id).addEventListener("input", () => {
+      st[id] = +$(id).value;
+      if (!st.mode) st.mode = "reflect";
+      L.tween.cancel("p2");
+      st.playing = false;
+      st.t = 1;
+      applyLine(false);
+    })
+  );
+  syncLineUI();
   update();
 })();
 

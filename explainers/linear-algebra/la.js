@@ -235,14 +235,14 @@
       ctx.restore();
     }
 
-    /* The integer grid moved by matrix m. */
+    /* The integer grid moved by matrix m, optionally followed by a shift (an affine map x -> m x + shift). */
     grid(m, o) {
-      o = Object.assign({ color: "--la-grid", alpha: 0.5, width: 1, axes: true, axisColor: "--fg", axisAlpha: 0.85 }, o || {});
-      const ctx = this.ctx;
-      const reach = Math.hypot(this.halfW, this.halfH);
+      o = Object.assign({ color: "--la-grid", alpha: 0.5, width: 1, axes: true, axisColor: "--fg", axisAlpha: 0.85, shift: [0, 0] }, o || {});
+      const ctx = this.ctx, sh = o.shift;
+      const reach = Math.hypot(this.halfW, this.halfH) + norm(sh);
       const K = Math.min(70, Math.ceil(reach / Math.max(sigmaMin(m), reach / 70)) + 1);
       const seg = (p, q) => {
-        const a = apply(m, p), b = apply(m, q);
+        const a = add(apply(m, p), sh), b = add(apply(m, q), sh);
         ctx.moveTo(this.X(a[0]), this.Y(a[1]));
         ctx.lineTo(this.X(b[0]), this.Y(b[1]));
       };

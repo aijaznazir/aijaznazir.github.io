@@ -86,6 +86,7 @@
           <button data-m="1,0,0,-1">reflection</button>
           <button data-m="1,1,0,1">shear</button>
           <button data-m="0,-1,1,0">rotation</button>
+          <button data-m="0.8,0.4,0.4,0.2">projection</button>
           <button data-m="2,0,0,2">uniform scale</button>
         </div>
       </div>
@@ -110,7 +111,7 @@
   </div>
 
   <h2>Three ways it can turn out</h2>
-  <p><strong>Two real eigenvalues.</strong> Two distinct eigen-directions, as in the example. A symmetric matrix (\(b = c\)) always lands here or in the uniform-scale case, and its eigen-directions are perpendicular.</p>
+  <p><strong>Two real eigenvalues.</strong> Two distinct eigen-directions, as in the example. A symmetric matrix (\(b = c\)) always lands here or in the uniform-scale case, and its eigen-directions are perpendicular. Projections and reflections across a line through the origin are symmetric, and their eigenvalues can be read off the picture: vectors on the line are untouched (\(\lambda = 1\)), while vectors perpendicular to it are crushed by a projection (\(\lambda = 0\)) and flipped by a reflection (\(\lambda = -1\)).</p>
   <p><strong>Complex eigenvalues.</strong> A 90° rotation turns every vector, so it has no real eigenvectors. The algebra agrees: \(\lambda^2 + 1 = 0\) has the roots \(\pm i\). Whenever a real 2×2 matrix has complex eigenvalues \(\alpha \pm \beta i\) with \(\beta \neq 0\), it turns every direction.</p>
   <p><strong>A repeated eigenvalue.</strong> The shear \(\begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix}\) has \((\lambda - 1)^2 = 0\), one eigenvalue counted twice, but only one eigen-direction, the horizontal axis. At the other extreme a uniform scaling \(2I\) also has \(\lambda = 2\) twice, and there every vector is an eigenvector.</p>
 
