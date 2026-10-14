@@ -39,7 +39,8 @@
             <h3>Get in Touch</h3>
             <div class="info-item">
               <span class="info-label">Email</span>
-              <a href="mailto:your.email@uh.edu">your.email@uh.edu</a>
+              <!-- Address is assembled by the script at the bottom of the page so it never appears as plain text in the HTML. -->
+              <a id="email-link" data-u="anazir" data-d="cougarnet.uh.edu">anazir [at] cougarnet [dot] uh [dot] edu</a>
             </div>
             <div class="info-item">
               <span class="info-label">Institution</span>
@@ -50,7 +51,8 @@
               <div class="socials">
                 <a href="https://github.com/aijaznazir" target="_blank" rel="noopener">GitHub</a>
                 <a href="https://www.linkedin.com/in/aijaz-nazir-b9653420b/" target="_blank" rel="noopener">LinkedIn</a>
-                <a href="https://sites.google.com/view/aijaz-nazir/home" target="_blank" rel="noopener">Google</a>
+                <a href="https://sites.google.com/view/aijaz-nazir/home" target="_blank" rel="noopener">Google Site</a>
+                <a href="https://scholar.google.com/citations?user=iHRHyzsAAAAJ&amp;hl=en" target="_blank" rel="noopener">Google Scholar</a>
               </div>
             </div>
           </div>
@@ -88,5 +90,14 @@
 
   <footer><span>© 2026 Aijaz Nazir</span><span>Mathematics · Computing · Learning</span></footer>
   <script src="script.js"></script>
+  <script>
+    (function () {
+      var a = document.getElementById("email-link");
+      if (!a) return;
+      var e = a.getAttribute("data-u") + "@" + a.getAttribute("data-d");
+      a.href = "mailto:" + e;
+      a.textContent = e;
+    })();
+  </script>
 </body>
 </html>
