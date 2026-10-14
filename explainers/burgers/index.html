@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Burgers' Equation and Shocks</title>
+<meta name="description" content="An interactive, ground-up explanation of how smooth waves steepen into shocks in Burgers' equation, and what viscosity does about it.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}]})"></script>
+<link rel="stylesheet" href="../../style.css">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<canvas id="mathCanvas" aria-hidden="true"></canvas>
+<div class="noise"></div>
+
+<header class="nav">
+  <a class="brand" href="../../index.html#top"><span>AN</span><b>Aijaz Nazir</b></a>
+  <nav>
+    <a href="../../index.html#research">Research</a>
+    <a href="../../index.html#projects">Projects</a>
+    <a href="../../index.html#notes">Notes</a>
+    <a class="active" href="../../explainers/">Explainers</a>
+    <a href="../../publications-and-teaching.html">Publications & Teaching</a>
+    <a href="../../index.html#about">About</a>
+    <a class="nav-cta" href="../../contact.html">Contact</a>
+  </nav>
+  <button class="menu" aria-label="Open menu">☰</button>
+</header>
+<div class="crumb"><a href="../">EXPLAINERS</a> / 01</div>
+
+<main class="article">
+  <p class="kicker">PDEs · Nonlinear waves</p>
+  <h1>Burgers' equation: how a smooth wave breaks</h1>
+  <p class="lede">The simplest equation in which a perfectly smooth initial condition turns into a discontinuity in finite time, and the simplest place to see what viscosity is really for.</p>
+
+  <h2>Start with a single rule</h2>
+  <p>Imagine a line of particles, each carrying a value \(u\), and each moving with speed equal to its own value. Nothing pushes on any particle, so the value it carries never changes. That is the whole model. Written down, "\(u\) is constant along a path moving at speed \(u\)" is</p>
+  $$\frac{\partial u}{\partial t} + u\,\frac{\partial u}{\partial x} = 0 .$$
+  <p>The left side is just the rate of change of \(u\) seen by an observer riding along at speed \(u\). Setting it to zero says that observer sees nothing change.</p>
+  <p>The paths themselves are called <em>characteristics</em>. A particle that starts at \(x_0\) keeps the value \(u_0(x_0)\) forever, so its path is a straight line:</p>
+  $$x(t) = x_0 + u_0(x_0)\,t .$$
+  <p>The solution is therefore known exactly, as long as each point \(x\) is reached by only one such line: \(u(x,t) = u_0(x_0)\), where \(x_0\) is the starting point of the line that arrives at \(x\).</p>
+
+  <h2>Why it has to break</h2>
+  <p>Where \(u_0\) decreases, a fast particle sits behind a slow one. The fast one catches up. Follow two neighbouring particles that start a distance \(\delta x_0\) apart. After time \(t\) their separation is</p>
+  $$\delta x(t) = \big(1 + u_0'(x_0)\,t\big)\,\delta x_0 .$$
+  <p>If \(u_0'(x_0)<0\), this separation shrinks to zero at \(t = -1/u_0'(x_0)\). The first place this happens is where the initial profile slopes down most steeply, which gives the breaking time</p>
+  $$t_b = \frac{1}{\max_{x_0}\big(-u_0'(x_0)\big)} .$$
+  <p>At \(t_b\) the gradient \(u_x\) becomes infinite. Past it, the straight-line construction places several values of \(u\) at the same \(x\). The dashed curve in the simulation below shows that construction: an S-shaped, multivalued profile that cannot be a physical solution. Something else has to happen.</p>
+
+  <div class="panel" id="burgers-panel">
+    <canvas id="cv-u" aria-label="Solution u(x,t)"></canvas>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--accent)"></span>numerical solution with viscosity \(\nu\)</span>
+      <span><span class="sw dash"></span><span id="lg-theory">characteristics (inviscid theory)</span></span>
+    </div>
+
+    <div class="controls">
+      <div class="control">
+        <label for="ic">Initial condition</label>
+        <select id="ic">
+          <option value="sine">Sine wave u₀ = sin x</option>
+          <option value="hump">Hump on a background flow</option>
+          <option value="shock">Step down: a shock</option>
+          <option value="fan">Step up: a rarefaction</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="nu">Viscosity <span class="m">ν</span> <output id="nu-out"></output></label>
+        <input type="range" id="nu" min="0" max="100" step="1" value="45">
+      </div>
+      <div class="control">
+        <label for="N">Grid cells <output id="N-out"></output></label>
+        <input type="range" id="N" min="50" max="800" step="10" value="400">
+      </div>
+      <div class="control">
+        <label for="speed">Playback speed <output id="speed-out"></output></label>
+        <input type="range" id="speed" min="0.1" max="2" step="0.1" value="0.6">
+      </div>
+    </div>
+    <div class="buttons">
+      <button class="primary" id="play">Play</button>
+      <button id="reset">Reset</button>
+      <label class="check"><input type="checkbox" id="theory" checked> Show inviscid theory</label>
+    </div>
+    <div class="readouts">
+      <span>t = <b id="r-t">0.00</b></span>
+      <span>breaking time t<sub>b</sub> = <b id="r-tb">1.00</b></span>
+      <span>steepest gradient max|u<sub>x</sub>| = <b id="r-grad">–</b></span>
+      <span>energy E/E<sub>0</sub> = <b id="r-E">–</b></span>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <p class="sub-title">Characteristics in the <span class="m">x–t</span> plane</p>
+        <div><canvas id="cv-xt" aria-label="Characteristic lines"></canvas></div>
+      </div>
+      <div>
+        <p class="sub-title">Energy <span class="m">½∫u² dx</span>, relative to start</p>
+        <div><canvas id="cv-E" aria-label="Energy over time"></canvas></div>
+      </div>
+    </div>
+
+    <div class="try">
+      <strong>Things to try</strong>
+      <ul>
+        <li>Play the sine wave and watch the solution and the dashed curve agree exactly until \(t=1\), then part ways.</li>
+        <li>Lower ν and replay. The shock gets thinner, but the energy curve after \(t_b\) barely changes.</li>
+        <li>Set ν to 0. The scheme still produces a clean shock a few cells wide: the grid itself is now supplying the dissipation.</li>
+        <li>Compare the two step problems. Characteristics collide in one and spread apart in the other.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>What replaces the multivalued profile: a shock</h2>
+  <p>The equation above came from a conservation law. Writing it in conservative form,</p>
+  $$\frac{\partial u}{\partial t} + \frac{\partial}{\partial x}\Big(\frac{u^2}{2}\Big) = 0,$$
+  <p>says that the total \(\int u\,dx\) in any interval changes only by the flux \(u^2/2\) through its ends. This statement still makes sense when \(u\) jumps. Apply it to a small box around a jump from \(u_L\) on the left to \(u_R\) on the right, moving at speed \(s\). In time \(dt\) the box gains \(u_L^2/2-u_R^2/2\) through its walls, and the jump sweeping through converts a length \(s\,dt\) from \(u_R\) to \(u_L\). Balancing the two gives the <em>Rankine–Hugoniot condition</em></p>
+  $$s = \frac{u_L^2/2 - u_R^2/2}{u_L - u_R} = \frac{u_L + u_R}{2}.$$
+  <p>The shock moves at the average of the states on either side. Integral conservation picks the position of the jump, which is why the shock cuts the S-shaped curve so that the areas it removes on either side are equal.</p>
+  <p>Not every jump is allowed. A jump is admissible only if characteristics run <em>into</em> it from both sides, which requires \(u_L &gt; u_R\). When \(u_L &lt; u_R\), characteristics fan apart instead and the jump opens into a smooth ramp, a <em>rarefaction wave</em>, \(u = (x-x_0)/t\). The two step problems in the simulation show exactly this asymmetry.</p>
+
+  <h2>What viscosity does</h2>
+  <p>Real fluids diffuse momentum. Adding that effect gives the viscous Burgers equation,</p>
+  $$\frac{\partial u}{\partial t} + u\,\frac{\partial u}{\partial x} = \nu\,\frac{\partial^2 u}{\partial x^2}.$$
+  <p>Steepening concentrates gradients; diffusion smooths them at a rate that grows with the gradient. The two balance in a travelling front. Looking for a profile \(u(x - st)\) and integrating once gives \(\nu u' = \tfrac12 (u-u_L)(u-u_R)\), whose solution is</p>
+  $$u = s - \frac{\Delta}{2}\tanh\!\Big(\frac{\Delta\,(x - st)}{4\nu}\Big), \qquad \Delta = u_L - u_R .$$
+  <p>The front has width of order \(4\nu/\Delta\), so it sharpens as \(\nu \to 0\). Its speed is \(s=(u_L+u_R)/2\), the Rankine–Hugoniot speed, independent of \(\nu\). The inviscid shock is the limit of these viscous fronts, and that limit is how the entropy condition is justified.</p>
+
+  <h3>The energy puzzle</h3>
+  <p>Multiplying the equation by \(u\) and integrating over a periodic domain gives</p>
+  $$\frac{d}{dt}\int \tfrac12 u^2\,dx = -\nu\int u_x^2\,dx .$$
+  <p>Before \(t_b\), gradients are bounded, so as \(\nu\to 0\) the right side vanishes and energy is conserved. After \(t_b\), the gradient inside the front grows like \(\Delta/\nu\) over a width proportional to \(\nu\). Integrating the tanh profile shows that the two factors cancel exactly: each shock removes energy at the rate</p>
+  $$\nu\int u_x^2\,dx = \frac{\Delta^3}{12},$$
+  <p>whatever \(\nu\) is. The dissipation does not go to zero with the viscosity. This is the one-dimensional cartoon of the dissipative anomaly in turbulence, and the reason a coarse simulation that cannot resolve the front still has to remove the right amount of energy there. That is the job of a numerical scheme's built-in dissipation, or of an explicit subgrid model.</p>
+
+  <div class="note">
+    <strong>About the numerics.</strong> The simulation uses a finite-volume method: second-order MUSCL reconstruction with a minmod limiter, the exact Godunov flux for \(u^2/2\), central differences for \(\nu u_{xx}\), and second-order strong-stability-preserving Runge–Kutta in time. The time step obeys both the advective limit \(\Delta t \le 0.45\,\Delta x/\max|u|\) and the diffusive limit \(\Delta t \le 0.25\,\Delta x^2/\nu\). Why such limits exist is the subject of the <a href="../finite-differences/">finite-difference stability explainer</a>.
+  </div>
+  <a class="next" href="../finite-differences/"><span><span>NEXT EXPLAINER</span><b>Finite Differences &amp; Stability</b></span><i>→</i></a>
+</main>
+
+<script src="../assets/plot.js"></script>
+<script>
+(function () {
+  "use strict";
+  const { Fig, css } = Plot;
+  const TWO_PI = 2 * Math.PI;
+  const $ = (id) => document.getElementById(id);
+
+  /* ---------- Initial conditions ---------- */
+  const IC = {
+    sine: {
+      periodic: true, L: TWO_PI, tmax: 4, ylim: [-1.45, 1.45],
+      u0: (x) => Math.sin(x),
+    },
+    hump: {
+      periodic: true, L: TWO_PI, tmax: 4, ylim: [-0.15, 1.6],
+      u0: (x) => 0.3 + Math.exp(-4 * (x - 2.2) ** 2),
+    },
+    shock: {
+      periodic: false, L: TWO_PI, tmax: 6, ylim: [-0.25, 1.3], uL: 1, uR: 0, x0: 1.5,
+      u0: (x) => (x < 1.5 ? 1 : 0),
+    },
+    fan: {
+      periodic: false, L: TWO_PI, tmax: 4, ylim: [-0.25, 1.3], uL: 0, uR: 1, x0: 1.5,
+      u0: (x) => (x < 1.5 ? 0 : 1),
+    },
+  };
+
+  function breakingTime(ic) {
+    if (ic === IC.shock) return 0;
+    if (ic === IC.fan) return Infinity;
+    let m = 0;
+    const h = 1e-4;
+    for (let k = 0; k < 4000; k++) {
+      const x = (k / 4000) * ic.L;
+      const d = -(ic.u0(x + h) - ic.u0(x - h)) / (2 * h);
+      if (d > m) m = d;
+    }
+    return m > 0 ? 1 / m : Infinity;
+  }
+
+  /* ---------- Parameters ---------- */
+  const nuFromSlider = (v) => (v <= 0 ? 0 : Math.pow(10, -3.5 + (v / 100) * 2.8));
+
+  let ic, N, dx, nu, u, t, tb, E0, Ehist, playing = false, last = null;
+  const G = 2; // ghost cells
+  let work = {};
+
+  function alloc(n) {
+    return {
+      a: new Float64Array(n + 2 * G), b: new Float64Array(n + 2 * G),
+      r: new Float64Array(n), s: new Float64Array(n + 2 * G), F: new Float64Array(n + 1),
+    };
+  }
+
+  function reset() {
+    ic = IC[$("ic").value];
+    N = +$("N").value;
+    nu = nuFromSlider(+$("nu").value);
+    dx = ic.L / N;
+    u = new Float64Array(N);
+    for (let i = 0; i < N; i++) {
+      // cell average from 8 midpoint samples (handles the step cleanly)
+      let s = 0;
+      for (let q = 0; q < 8; q++) s += ic.u0(i * dx + ((q + 0.5) / 8) * dx);
+      u[i] = s / 8;
+    }
+    work = alloc(N);
+    t = 0;
+    tb = breakingTime(ic);
+    E0 = energy();
+    Ehist = [[0, 1]];
+    uFig.o.ylim = ic.ylim;
+    uFig.o.xlim = [0, ic.L];
+    setupXT();
+    eFig.o.xlim = [0, ic.tmax];
+    $("lg-theory").textContent = ic.periodic
+      ? "characteristics (inviscid theory)"
+      : "exact inviscid solution";
+    readouts();
+    drawAll();
+  }
+
+  /* ---------- Numerics ---------- */
+  const minmod = (a, b) => (a * b <= 0 ? 0 : Math.abs(a) < Math.abs(b) ? a : b);
+  const f = (v) => 0.5 * v * v;
+  function godunov(uL, uR) {
+    if (uL > uR) return Math.max(f(uL), f(uR));
+    if (uL > 0) return f(uL);
+    if (uR < 0) return f(uR);
+    return 0;
+  }
+
+  function fillGhosts(g) {
+    if (ic.periodic) {
+      for (let k = 0; k < G; k++) {
+        g[k] = g[N + k];
+        g[N + G + k] = g[G + k];
+      }
+    } else {
+      for (let k = 0; k < G; k++) {
+        g[k] = g[G];
+        g[N + G + k] = g[N + G - 1];
+      }
+    }
+  }
+
+  // out[i] = L(u)_i for padded array g
+  function rhs(g, out) {
+    fillGhosts(g);
+    const s = work.s, F = work.F;
+    for (let i = 1; i < N + 2 * G - 1; i++) s[i] = minmod(g[i] - g[i - 1], g[i + 1] - g[i]);
+    // face j sits between padded cells G-1+j and G+j
+    for (let j = 0; j <= N; j++) {
+      const iL = G - 1 + j, iR = G + j;
+      F[j] = godunov(g[iL] + 0.5 * s[iL], g[iR] - 0.5 * s[iR]);
+    }
+    const c = nu / (dx * dx);
+    for (let i = 0; i < N; i++) {
+      const k = i + G;
+      out[i] = -(F[i + 1] - F[i]) / dx + c * (g[k + 1] - 2 * g[k] + g[k - 1]);
+    }
+  }
+
+  function step(dt) {
+    const a = work.a, b = work.b, r = work.r;
+    for (let i = 0; i < N; i++) a[i + G] = u[i];
+    rhs(a, r);
+    for (let i = 0; i < N; i++) b[i + G] = u[i] + dt * r[i];
+    rhs(b, r);
+    for (let i = 0; i < N; i++) u[i] = 0.5 * u[i] + 0.5 * (b[i + G] + dt * r[i]);
+  }
+
+  function maxAbs() {
+    let m = 0;
+    for (let i = 0; i < N; i++) m = Math.max(m, Math.abs(u[i]));
+    return m;
+  }
+
+  function advance(T) {
+    let steps = 0;
+    while (T > 1e-12 && steps < 4000) {
+      let dt = (0.45 * dx) / Math.max(maxAbs(), 1e-6);
+      if (nu > 0) dt = Math.min(dt, (0.25 * dx * dx) / nu);
+      dt = Math.min(dt, T, ic.tmax - t);
+      if (dt <= 0) break;
+      step(dt);
+      t += dt;
+      T -= dt;
+      steps++;
+    }
+  }
+
+  function energy() {
+    let s = 0;
+    for (let i = 0; i < N; i++) s += u[i] * u[i];
+    return 0.5 * s * dx;
+  }
+  function maxGrad() {
+    let m = 0;
+    const n = ic.periodic ? N : N - 1;
+    for (let i = 0; i < n; i++) m = Math.max(m, Math.abs(u[(i + 1) % N] - u[i]));
+    return m / dx;
+  }
+
+  /* ---------- Figures ---------- */
+  const piTicks = [[0, "0"], [Math.PI / 2, "π/2"], [Math.PI, "π"], [1.5 * Math.PI, "3π/2"], [TWO_PI, "2π"]];
+  const uFig = new Fig($("cv-u"), { aspect: 0.48, maxH: 400, xlabel: "x", ylabel: "u", xticks: piTicks });
+  const xtFig = new Fig($("cv-xt"), { aspect: 0.75, minH: 200, maxH: 300, xlabel: "x", ylabel: "t", xticks: piTicks, pad: { l: 40, r: 10, t: 10, b: 36 } });
+  const eFig = new Fig($("cv-E"), { aspect: 0.75, minH: 200, maxH: 300, xlabel: "t", ylabel: "E / E₀", ylim: [0, 1.05], pad: { l: 44, r: 10, t: 10, b: 36 } });
+
+  function theoryCurve() {
+    // returns {xs, ys, brk}
+    if (ic.periodic) {
+      const M = 1200, xs = [], ys = [];
+      for (let k = 0; k <= M; k++) {
+        const x0 = (k / M) * ic.L;
+        const v = ic.u0(x0);
+        let x = x0 + v * t;
+        x = ((x % ic.L) + ic.L) % ic.L;
+        xs.push(x);
+        ys.push(v);
+      }
+      return { xs, ys, brk: (i) => i > 0 && Math.abs(xs[i] - xs[i - 1]) > ic.L / 2 };
+    }
+    const xs = [], ys = [];
+    const { uL, uR, x0 } = ic;
+    if (uL > uR) {
+      const xs_ = x0 + 0.5 * (uL + uR) * t;
+      xs.push(0, xs_, xs_, ic.L);
+      ys.push(uL, uL, uR, uR);
+    } else {
+      xs.push(0, x0 + uL * t, x0 + uR * t, ic.L);
+      ys.push(uL, uL, uR, uR);
+    }
+    return { xs, ys, brk: null };
+  }
+
+  function drawU() {
+    const F = uFig;
+    F.clear();
+    F.axes();
+    F.clip();
+    if ($("theory").checked) {
+      const th = theoryCurve();
+      F.line(th.xs, th.ys, { color: css("--muted"), width: 1.6, dash: [5, 4], breakIf: th.brk });
+    }
+    const xs = new Array(N), ys = new Array(N);
+    for (let i = 0; i < N; i++) { xs[i] = (i + 0.5) * dx; ys[i] = u[i]; }
+    if (ic.periodic) { xs.unshift(0); ys.unshift(0.5 * (u[0] + u[N - 1])); xs.push(ic.L); ys.push(0.5 * (u[0] + u[N - 1])); }
+    F.line(xs, ys, { color: css("--accent"), width: 2.4 });
+    F.unclip();
+  }
+
+  let xtLines = [];
+  function setupXT() {
+    xtFig.o.xlim = [0, ic.L];
+    const tview = ic.periodic ? Math.min(ic.tmax, 2.5 * tb) : ic.tmax;
+    xtFig.o.ylim = [0, tview];
+    xtLines = [];
+    const M = 36;
+    if (ic.periodic) {
+      for (let k = 0; k < M; k++) {
+        const x0 = ((k + 0.5) / M) * ic.L, v = ic.u0(x0);
+        for (const sh of [-ic.L, 0, ic.L]) xtLines.push([[x0 + sh, 0], [x0 + sh + v * tview, tview]]);
+      }
+    } else {
+      const { uL, uR, x0 } = ic;
+      for (let k = 0; k < M; k++) {
+        const a = ((k + 0.5) / M) * ic.L;
+        const v = a < x0 ? uL : uR;
+        let tend = tview;
+        if (uL > uR) {
+          // stop at the shock x = x0 + s t
+          const s = 0.5 * (uL + uR);
+          const hit = (a - x0) / (s - v);
+          if (hit > 0) tend = Math.min(tend, hit);
+        }
+        xtLines.push([[a, 0], [a + v * tend, tend]]);
+      }
+      if (uL > uR) {
+        const s = 0.5 * (uL + uR);
+        xtLines.shock = [[x0, 0], [x0 + s * tview, tview]];
+      } else {
+        xtLines.fan = [];
+        for (let k = 0; k <= 8; k++) {
+          const v = uL + (k / 8) * (uR - uL);
+          xtLines.fan.push([[x0, 0], [x0 + v * tview, tview]]);
+        }
+      }
+    }
+  }
+
+  function drawXT() {
+    const F = xtFig;
+    F.clear();
+    F.axes();
+    F.clip();
+    const acc = css("--accent"), acc2 = css("--accent2"), muted = css("--muted");
+    xtLines.forEach((s) => F.line([s[0][0], s[1][0]], [s[0][1], s[1][1]], { color: acc, width: 1, alpha: 0.55 }));
+    if (xtLines.fan) xtLines.fan.forEach((s) => F.line([s[0][0], s[1][0]], [s[0][1], s[1][1]], { color: acc3(), width: 1.2 }));
+    if (xtLines.shock) F.line([xtLines.shock[0][0], xtLines.shock[1][0]], [0, xtLines.shock[1][1]], { color: acc2, width: 2.5 });
+    if (isFinite(tb) && tb > 0 && tb < F.o.ylim[1]) {
+      F.hline(tb, { color: acc2, width: 1.2, dash: [4, 4] });
+      F.text("t_b", F.o.xlim[1], tb, { color: acc2, align: "right", dx: -4, dy: -9 });
+    }
+    if (t <= F.o.ylim[1]) F.hline(t, { color: muted, width: 2 });
+    F.unclip();
+  }
+  const acc3 = () => css("--accent3");
+
+  function drawE() {
+    const F = eFig;
+    F.clear();
+    F.axes();
+    F.clip();
+    if (ic.periodic) {
+      if (isFinite(tb)) F.vline(tb, { color: css("--accent2"), width: 1.2, dash: [4, 4] });
+      F.line(Ehist.map((p) => p[0]), Ehist.map((p) => p[1]), { color: css("--accent3"), width: 2.2 });
+    } else {
+      F.text("Energy budget needs a closed (periodic) domain", (F.o.xlim[0] + F.o.xlim[1]) / 2, 0.5, { align: "center" });
+    }
+    F.unclip();
+  }
+
+  function drawAll() { drawU(); drawXT(); drawE(); }
+  uFig.redraw = drawU;
+  xtFig.redraw = drawXT;
+  eFig.redraw = drawE;
+
+  function readouts() {
+    $("r-t").textContent = t.toFixed(2);
+    $("r-tb").textContent = tb === 0 ? "0 (already a jump)" : isFinite(tb) ? tb.toFixed(2) : "never";
+    const g = maxGrad();
+    $("r-grad").textContent = g > 999 ? g.toExponential(1) : g.toFixed(2);
+    $("r-E").textContent = ic.periodic ? (energy() / E0).toFixed(3) : "–";
+  }
+
+  /* ---------- Loop ---------- */
+  function frame(ts) {
+    if (!playing) return;
+    if (last == null) last = ts;
+    const dtWall = Math.min(0.05, (ts - last) / 1000);
+    last = ts;
+    advance(dtWall * +$("speed").value);
+    if (ic.periodic) {
+      const lastE = Ehist[Ehist.length - 1];
+      if (t - lastE[0] > ic.tmax / 400) Ehist.push([t, energy() / E0]);
+    }
+    readouts();
+    drawAll();
+    if (t >= ic.tmax - 1e-9) { setPlaying(false); return; }
+    requestAnimationFrame(frame);
+  }
+  function setPlaying(p) {
+    playing = p;
+    $("play").textContent = p ? "Pause" : t >= ic.tmax - 1e-9 ? "Replay" : "Play";
+    if (p) { last = null; requestAnimationFrame(frame); }
+  }
+
+  $("play").addEventListener("click", () => {
+    if (!playing && t >= ic.tmax - 1e-9) reset();
+    setPlaying(!playing);
+  });
+  $("reset").addEventListener("click", () => { setPlaying(false); reset(); $("play").textContent = "Play"; });
+  $("theory").addEventListener("change", drawU);
+
+  function labelSliders() {
+    const v = nuFromSlider(+$("nu").value);
+    $("nu-out").textContent = v === 0 ? "0 (numerical only)" : v < 0.01 ? v.toExponential(1) : v.toFixed(3);
+    $("N-out").textContent = $("N").value;
+    $("speed-out").textContent = (+$("speed").value).toFixed(1) + "×";
+  }
+  ["nu", "N"].forEach((id) =>
+    $(id).addEventListener("input", () => { labelSliders(); setPlaying(false); reset(); $("play").textContent = "Play"; })
+  );
+  $("speed").addEventListener("input", labelSliders);
+  $("ic").addEventListener("change", () => { setPlaying(false); reset(); $("play").textContent = "Play"; });
+
+  labelSliders();
+  reset();
+})();
+</script>
+<footer><span>© 2026 Aijaz Nazir</span><span>Mathematics · Computing · Learning</span></footer>
+<script src="../../script.js"></script>
+</body>
+</html>

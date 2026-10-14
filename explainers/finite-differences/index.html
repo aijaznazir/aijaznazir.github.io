@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Finite Differences and Stability</title>
+<meta name="description" content="An interactive explanation of why some finite-difference schemes for advection blow up, the CFL condition, and von Neumann stability analysis.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}]})"></script>
+<link rel="stylesheet" href="../../style.css">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<canvas id="mathCanvas" aria-hidden="true"></canvas>
+<div class="noise"></div>
+
+<header class="nav">
+  <a class="brand" href="../../index.html#top"><span>AN</span><b>Aijaz Nazir</b></a>
+  <nav>
+    <a href="../../index.html#research">Research</a>
+    <a href="../../index.html#projects">Projects</a>
+    <a href="../../index.html#notes">Notes</a>
+    <a class="active" href="../../explainers/">Explainers</a>
+    <a href="../../publications-and-teaching.html">Publications & Teaching</a>
+    <a href="../../index.html#about">About</a>
+    <a class="nav-cta" href="../../contact.html">Contact</a>
+  </nav>
+  <button class="menu" aria-label="Open menu">☰</button>
+</header>
+<div class="crumb"><a href="../">EXPLAINERS</a> / 02</div>
+
+<main class="article">
+  <p class="kicker">Numerical methods · Stability</p>
+  <h1>Finite differences: why some schemes blow up</h1>
+  <p class="lede">Five reasonable-looking discretizations of the same one-line equation. One is exact at a special time step, some smear, some ripple, and two explode. The reasons fit on a single picture each.</p>
+
+  <h2>The problem: move a shape without changing it</h2>
+  <p>The advection equation</p>
+  $$\frac{\partial u}{\partial t} + a\,\frac{\partial u}{\partial x} = 0, \qquad a > 0,$$
+  <p>says that \(u\) is constant along lines \(x - at = \text{const}\). Its solution is the initial profile sliding to the right at speed \(a\): \(u(x,t) = u_0(x - at)\). Nothing grows, nothing decays, nothing changes shape. Any change you see in a computed solution is the scheme's doing, which makes this the cleanest test there is.</p>
+
+  <h2>Discretizing</h2>
+  <p>Store values \(u_j^n \approx u(j\Delta x, n\Delta t)\) on a grid and replace derivatives by differences. The time derivative becomes \((u_j^{n+1}-u_j^n)/\Delta t\). For the space derivative there is a choice: look left, look right, or look both ways. Every choice leads to an update of the form "new value = weighted combination of nearby old values", and the weights depend on a single number,</p>
+  $$c = \frac{a\,\Delta t}{\Delta x},$$
+  <p>the <em>Courant number</em>: how many grid cells the true solution moves in one step.</p>
+
+  <div class="table-wrap">
+  <table class="schemes">
+    <thead><tr><th>Scheme</th><th>Update \(u_j^{n+1} =\)</th></tr></thead>
+    <tbody>
+      <tr><td>FTCS (central)</td><td>\(u_j - \tfrac{c}{2}(u_{j+1}-u_{j-1})\)</td></tr>
+      <tr><td>Upwind</td><td>\(u_j - c\,(u_j-u_{j-1})\)</td></tr>
+      <tr><td>Downwind</td><td>\(u_j - c\,(u_{j+1}-u_j)\)</td></tr>
+      <tr><td>Lax–Friedrichs</td><td>\(\tfrac12(u_{j+1}+u_{j-1}) - \tfrac{c}{2}(u_{j+1}-u_{j-1})\)</td></tr>
+      <tr><td>Lax–Wendroff</td><td>\(u_j - \tfrac{c}{2}(u_{j+1}-u_{j-1}) + \tfrac{c^2}{2}(u_{j+1}-2u_j+u_{j-1})\)</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>All five are consistent: as \(\Delta x,\Delta t\to 0\) each reduces to the PDE. Consistency is not enough. Try them.</p>
+
+  <div class="panel" id="fd-panel">
+    <canvas id="cv-u" aria-label="Numerical and exact solutions"></canvas>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--accent)"></span>numerical</span>
+      <span><span class="sw dash"></span>exact \(u_0(x-at)\)</span>
+      <span><span class="sw dot" style="background:var(--accent)"></span>grid values</span>
+    </div>
+
+    <div class="controls">
+      <div class="control">
+        <label for="scheme">Scheme</label>
+        <select id="scheme">
+          <option value="upwind">Upwind</option>
+          <option value="ftcs">FTCS (central)</option>
+          <option value="downwind">Downwind</option>
+          <option value="lf">Lax–Friedrichs</option>
+          <option value="lw">Lax–Wendroff</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="c">Courant number <span class="m">c = aΔt/Δx</span> <output id="c-out"></output></label>
+        <input type="range" id="c" min="0.05" max="1.5" step="0.01" value="0.5">
+      </div>
+      <div class="control">
+        <label for="ic">Initial profile</label>
+        <select id="ic">
+          <option value="gauss">Smooth bump</option>
+          <option value="square">Square pulse</option>
+          <option value="packet">Short wave packet</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="N">Grid points <output id="N-out"></output></label>
+        <input type="range" id="N" min="20" max="300" step="5" value="100">
+      </div>
+    </div>
+    <div class="buttons">
+      <button class="primary" id="play">Play</button>
+      <button id="step">Step</button>
+      <button id="reset">Reset</button>
+      <label class="check">Steps per frame <input type="range" id="spf" min="1" max="20" step="1" value="2" style="width:90px"></label>
+    </div>
+    <div class="readouts">
+      <span>step n = <b id="r-n">0</b></span>
+      <span>t = <b id="r-t">0.000</b></span>
+      <span>max|u| = <b id="r-max">1.00</b></span>
+      <span>RMS error = <b id="r-err">0</b></span>
+    </div>
+    <div class="status" id="status"></div>
+
+    <div class="two-col">
+      <div>
+        <p class="sub-title">Stencil and where the information comes from</p>
+        <div><canvas id="cv-st" aria-label="Stencil diagram"></canvas></div>
+      </div>
+      <div>
+        <p class="sub-title">Amplification factor <span class="m">g(θ)</span> in the complex plane</p>
+        <div><canvas id="cv-g" aria-label="Amplification factor"></canvas></div>
+      </div>
+    </div>
+    <p class="scheme-note" id="scheme-note"></p>
+
+    <div class="try">
+      <strong>Things to try</strong>
+      <ul>
+        <li>Upwind at c = 1.00, then 0.50, then 1.05. One is exact, one smears, one explodes.</li>
+        <li>FTCS at any c. Its curve on the right always pokes outside the unit circle, so it always blows up eventually; small c only delays it.</li>
+        <li>Lax–Wendroff on the square pulse: sharp edges, but ripples trailing behind them.</li>
+        <li>Lax–Friedrichs at c = 0.1: stable, but it flattens the bump quickly. Lowering the time step made it worse.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>First picture: where the information comes from</h2>
+  <p>The true value \(u(x_j, t_{n+1})\) equals the value at time \(t_n\) at the <em>foot of the characteristic</em>, the point \(x_j - a\Delta t = x_j - c\,\Delta x\). A scheme can only get this right in general if that point lies within the grid points its stencil actually reads. If it does not, the scheme is computing the new value from data that physically cannot influence it, and no refinement fixes that.</p>
+  <p>This is the <em>Courant–Friedrichs–Lewy (CFL) condition</em>: the numerical domain of dependence must contain the physical one. For upwind, the stencil spans \([x_{j-1},x_j]\), so it requires \(0\le c\le 1\). Downwind reads \([x_j,x_{j+1}]\), on the wrong side of \(x_j\), so it fails for every \(c&gt;0\). The left diagram in the simulation draws this for each scheme.</p>
+  <p>The CFL condition is necessary, not sufficient. FTCS reads both neighbours, satisfies it for \(c\le 1\), and blows up anyway. To see why, we need the second picture.</p>
+
+  <h2>Second picture: what each step does to each wave</h2>
+  <p>All five schemes are linear with constant coefficients, so they act on each Fourier mode separately. Insert a single mode \(u_j^n = e^{ij\theta}\) (θ is the phase change per grid cell; \(\theta = \pi\) is the shortest wave the grid can hold). One step multiplies it by a complex number \(g(\theta)\), the <em>amplification factor</em>. For upwind,</p>
+  $$g(\theta) = 1 - c + c\,e^{-i\theta},$$
+  <p>which, as θ varies, traces a circle of radius \(c\) centred at \(1-c\). That circle sits inside the unit circle exactly when \(0 \le c \le 1\). Computing the modulus directly,</p>
+  $$|g|^2 = 1 - 2c(1-c)(1-\cos\theta),$$
+  <p>which is at most 1 for all θ precisely when \(0\le c\le1\). After \(n\) steps a mode has been multiplied by \(g^n\). If \(|g|&gt;1\) for any θ, that mode grows geometrically. Rounding error contains every mode, so eventually it dominates. This is <em>von Neumann stability analysis</em>: the scheme is stable when the curve \(g(\theta)\) stays inside the unit circle.</p>
+  <p>For FTCS, \(g = 1 - ic\sin\theta\) is a vertical segment through 1, and \(|g|^2 = 1 + c^2\sin^2\theta &gt; 1\) for every \(c&gt;0\). It is unconditionally unstable for advection. The modes with \(\theta\) near \(\pi/2\), four cells per wavelength, grow fastest, which is why the blow-up shows up as a short grid-scale wiggle rather than a smooth bulge.</p>
+  <p>The Lax equivalence theorem ties the pictures together: for a consistent linear scheme, stability is exactly what separates convergence from divergence as the grid is refined.</p>
+
+  <h2>Stable is not the same as accurate</h2>
+  <p>Inside the unit circle, the curve still says what the scheme does wrong. The modulus \(|g|\) is how much each wave decays per step, and \(\arg g\) compared with the exact \(-c\theta\) is how far it lags or leads. A cleaner way to see both is the <em>modified equation</em>: the PDE the scheme actually solves to the next order in \(\Delta x\). Taylor-expanding the upwind update gives</p>
+  $$u_t + a u_x = \underbrace{\tfrac{a\Delta x}{2}(1-c)}_{\nu_{\text{num}}}\,u_{xx} + \dots$$
+  <p>Upwind is the exact equation plus diffusion with a grid-dependent viscosity. That is why it smears the pulse, why the smearing vanishes at \(c=1\) (where \(g = e^{-i\theta}\) and the scheme just copies values one cell over), and why \(c&gt;1\) turns the viscosity negative. Lax–Friedrichs has \(\nu_{\text{num}} = \frac{a\Delta x}{2c}(1-c^2)\), which grows as \(c\) shrinks. Lax–Wendroff cancels the diffusive term and is left with a dispersive one,</p>
+  $$u_t + a u_x = -\tfrac{a\Delta x^2}{6}(1-c^2)\,u_{xxx} + \dots,$$
+  <p>so short waves travel too slowly and fall behind sharp features as ripples. No linear scheme beyond first order avoids such oscillations at a discontinuity (Godunov's theorem), which is why shock-capturing methods like the one in the <a href="../burgers/">Burgers explainer</a> use nonlinear limiters.</p>
+  <a class="next" href="../burgers/"><span><span>NEXT EXPLAINER</span><b>Burgers' Equation &amp; Shocks</b></span><i>→</i></a>
+</main>
+
+<script src="../assets/plot.js"></script>
+<script>
+(function () {
+  "use strict";
+  const { Fig, css } = Plot;
+  const $ = (id) => document.getElementById(id);
+
+  /* ---------- Schemes ---------- */
+  // g(theta, c) returns [re, im]; stencil = offsets read; note = explanation.
+  const S = {
+    upwind: {
+      stencil: [-1, 0],
+      upd: (m, z, p, c) => z - c * (z - m),
+      g: (th, c) => [1 - c + c * Math.cos(th), -c * Math.sin(th)],
+      note: "Upwind reads the cell the flow comes from. Its g(θ) is a circle of radius c centred at 1 − c: inside the unit circle for c ≤ 1, touching it everywhere at c = 1. Inside, it behaves like the exact equation plus numerical viscosity aΔx(1 − c)/2.",
+    },
+    ftcs: {
+      stencil: [-1, 0, 1],
+      upd: (m, z, p, c) => z - 0.5 * c * (p - m),
+      g: (th, c) => [1, -c * Math.sin(th)],
+      note: "FTCS looks symmetric and second-order in space, and its stencil satisfies the CFL condition for c ≤ 1. But g(θ) = 1 − ic sin θ is a vertical segment through 1, outside the unit circle for every c > 0. It is unstable at every time step.",
+    },
+    downwind: {
+      stencil: [0, 1],
+      upd: (m, z, p, c) => z - c * (p - z),
+      g: (th, c) => [1 + c - c * Math.cos(th), -c * Math.sin(th)],
+      note: "Downwind reads from the side the flow is going to. The foot of the characteristic is never in its stencil, and g(θ) is a circle centred at 1 + c, outside the unit circle for every c > 0.",
+    },
+    lf: {
+      stencil: [-1, 1],
+      upd: (m, z, p, c) => 0.5 * (p + m) - 0.5 * c * (p - m),
+      g: (th, c) => [Math.cos(th), -c * Math.sin(th)],
+      note: "Lax–Friedrichs replaces u_j by the average of its neighbours, which stabilizes FTCS. g(θ) is an ellipse with semi-axes 1 and c, so it is stable for c ≤ 1. Its numerical viscosity aΔx(1 − c²)/(2c) grows as c shrinks, so smaller time steps make it more diffusive.",
+    },
+    lw: {
+      stencil: [-1, 0, 1],
+      upd: (m, z, p, c) => z - 0.5 * c * (p - m) + 0.5 * c * c * (p - 2 * z + m),
+      g: (th, c) => [1 - c * c * (1 - Math.cos(th)), -c * Math.sin(th)],
+      note: "Lax–Wendroff adds to FTCS the c²/2 diffusion term that comes from Taylor-expanding to second order in time. That term both makes the scheme second-order accurate and pulls g(θ) back inside the unit circle for c ≤ 1. Its leading error is dispersive, so short waves lag and leave ripples behind sharp features.",
+    },
+  };
+
+  const IC = {
+    gauss: { f: (x) => Math.exp(-(((x - 0.3) / 0.06) ** 2)), ylim: [-0.45, 1.45] },
+    square: { f: (x) => (x > 0.2 && x < 0.4 ? 1 : 0), ylim: [-0.45, 1.45] },
+    packet: { f: (x) => Math.exp(-(((x - 0.3) / 0.1) ** 2)) * Math.cos(2 * Math.PI * 12 * (x - 0.3)), ylim: [-1.35, 1.35] },
+  };
+
+  let scheme, ic, c, N, dx, u, un, n, playing = false, dead = false;
+
+  function wrap(x) { return ((x % 1) + 1) % 1; }
+
+  function reset() {
+    scheme = S[$("scheme").value];
+    ic = IC[$("ic").value];
+    c = +$("c").value;
+    N = +$("N").value;
+    dx = 1 / N;
+    u = new Float64Array(N);
+    un = new Float64Array(N);
+    for (let j = 0; j < N; j++) u[j] = ic.f(j * dx);
+    n = 0;
+    dead = false;
+    uFig.o.ylim = ic.ylim;
+    $("scheme-note").textContent = scheme.note;
+    updateStatus();
+    readouts();
+    drawAll();
+  }
+
+  function stepOnce() {
+    for (let j = 0; j < N; j++) {
+      un[j] = scheme.upd(u[(j - 1 + N) % N], u[j], u[(j + 1) % N], c);
+    }
+    const tmp = u; u = un; un = tmp;
+    n++;
+  }
+
+  function maxAbs() {
+    let m = 0;
+    for (let j = 0; j < N; j++) { const v = Math.abs(u[j]); if (!(v <= m)) m = v; }
+    return m;
+  }
+
+  function rmsErr() {
+    const t = n * c * dx;
+    let s = 0;
+    for (let j = 0; j < N; j++) { const e = u[j] - ic.f(wrap(j * dx - t)); s += e * e; }
+    return Math.sqrt(s / N);
+  }
+
+  function maxG() {
+    let m = 0, arg = 0;
+    for (let k = 0; k <= 720; k++) {
+      const th = (k / 720) * Math.PI;
+      const [re, im] = scheme.g(th, c);
+      const r = Math.hypot(re, im);
+      if (r > m) { m = r; arg = th; }
+    }
+    return { m, th: arg };
+  }
+
+  function cflOK() {
+    const lo = Math.min(...scheme.stencil), hi = Math.max(...scheme.stencil);
+    return -c >= lo - 1e-12 && -c <= hi + 1e-12;
+  }
+
+  function updateStatus() {
+    const el = $("status");
+    const G = maxG();
+    const cfl = cflOK();
+    if (G.m <= 1 + 1e-9) {
+      el.className = "status good";
+      el.textContent = "Stable: |g(θ)| ≤ 1 for every θ, and the CFL condition holds. No Fourier mode can grow.";
+    } else {
+      el.className = "status bad";
+      const steps = Math.log(10) / Math.log(G.m);
+      el.textContent =
+        "Unstable: the worst mode (" + (G.th / Math.PI).toFixed(2) + "π per cell) grows by ×" + G.m.toFixed(3) +
+        " per step, a factor of 10 every " + (steps < 10 ? steps.toFixed(1) : Math.round(steps)) + " steps." +
+        (cfl ? " The CFL condition holds here, so it is not sufficient." : " The CFL condition fails too.");
+    }
+  }
+
+  function readouts() {
+    $("r-n").textContent = n;
+    $("r-t").textContent = (n * c * dx).toFixed(3);
+    const m = maxAbs();
+    $("r-max").textContent = !isFinite(m) ? "∞" : m > 999 ? m.toExponential(2) : m.toFixed(3);
+    const e = rmsErr();
+    $("r-err").textContent = !isFinite(e) ? "∞" : e > 999 ? e.toExponential(2) : e.toFixed(4);
+  }
+
+  /* ---------- Figures ---------- */
+  const uFig = new Fig($("cv-u"), { xlim: [0, 1], aspect: 0.45, maxH: 380, xlabel: "x", ylabel: "u" });
+  const stFig = new Fig($("cv-st"), {
+    xlim: [-2.6, 2.6], ylim: [-0.55, 1.45], aspect: 0.62, minH: 190, maxH: 280,
+    xticks: [[-2, "j−2"], [-1, "j−1"], [0, "j"], [1, "j+1"], [2, "j+2"]],
+    yticks: [[0, "n"], [1, "n+1"]],
+    pad: { l: 40, r: 10, t: 10, b: 30 },
+  });
+  const gFig = new Fig($("cv-g"), { square: true, minH: 200, maxH: 320, xlabel: "Re g", ylabel: "Im g", pad: { l: 44, r: 12, t: 10, b: 36 } });
+
+  function drawU() {
+    const F = uFig;
+    F.clear();
+    F.axes();
+    F.clip();
+    const t = n * c * dx;
+    const M = 800, ex = [], ey = [];
+    for (let k = 0; k <= M; k++) { const x = k / M; ex.push(x); ey.push(ic.f(wrap(x - t))); }
+    F.line(ex, ey, { color: css("--muted"), width: 1.6, dash: [5, 4] });
+    const xs = [], ys = [];
+    for (let j = 0; j <= N; j++) { xs.push(j * dx); ys.push(u[j % N]); }
+    F.line(xs, ys, { color: css("--accent"), width: 2.2 });
+    if (N <= 120) {
+      const ctx = F.ctx;
+      ctx.fillStyle = css("--accent");
+      for (let j = 0; j < N; j++) {
+        if (!isFinite(u[j])) continue;
+        const py = F.Y(u[j]);
+        if (py < -10 || py > F.h + 10) continue;
+        ctx.beginPath();
+        ctx.arc(F.X(j * dx), py, 2.4, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+    }
+    F.unclip();
+  }
+
+  function drawST() {
+    const F = stFig, ctx = F.ctx;
+    F.clear();
+    F.axes();
+    const acc = css("--accent"), acc2 = css("--accent2"), muted = css("--muted"), soft = css("--soft"), good = css("--accent3");
+    const lo = Math.min(...scheme.stencil), hi = Math.max(...scheme.stencil);
+    // numerical domain of dependence
+    ctx.save();
+    ctx.fillStyle = soft;
+    ctx.globalAlpha = 0.9;
+    ctx.beginPath();
+    ctx.moveTo(F.X(0), F.Y(1));
+    ctx.lineTo(F.X(lo), F.Y(0));
+    ctx.lineTo(F.X(hi), F.Y(0));
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+    scheme.stencil.forEach((s) => F.line([0, s], [1, 0], { color: acc, width: 1.8 }));
+    // grid points
+    for (let k = -2; k <= 2; k++) {
+      const used = scheme.stencil.includes(k);
+      ctx.beginPath();
+      ctx.arc(F.X(k), F.Y(0), used ? 5.5 : 3.5, 0, 2 * Math.PI);
+      ctx.fillStyle = used ? acc : muted;
+      ctx.fill();
+    }
+    ctx.beginPath();
+    ctx.arc(F.X(0), F.Y(1), 5.5, 0, 2 * Math.PI);
+    ctx.fillStyle = css("--fg");
+    ctx.fill();
+    // characteristic
+    const ok = cflOK();
+    const col = ok ? good : acc2;
+    const footX = Math.max(-2.55, -c);
+    F.line([0, -c], [1, 0], { color: col, width: 2.2, dash: [6, 4] });
+    ctx.save();
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 2.5;
+    const fx = F.X(footX), fy = F.Y(0);
+    ctx.beginPath();
+    ctx.moveTo(fx - 6, fy - 6); ctx.lineTo(fx + 6, fy + 6);
+    ctx.moveTo(fx - 6, fy + 6); ctx.lineTo(fx + 6, fy - 6);
+    ctx.stroke();
+    ctx.restore();
+    F.text(ok ? "foot inside stencil" : "foot outside stencil", -c, 0, { color: col, align: "center", dy: 18, font: "600 11px Inter, system-ui, sans-serif" });
+    F.text("characteristic", -c / 2, 0.5, { color: col, align: "right", dx: -8, font: "11px Inter, system-ui, sans-serif" });
+  }
+
+  function drawG() {
+    const F = gFig;
+    let R = 1;
+    const pts = [];
+    for (let k = 0; k <= 360; k++) {
+      const th = (k / 360) * 2 * Math.PI;
+      const g = scheme.g(th, c);
+      pts.push(g);
+      R = Math.max(R, Math.abs(g[0]), Math.abs(g[1]));
+    }
+    const L = Math.ceil((R + 0.25) * 2) / 2;
+    F.o.xlim = [-L, L];
+    F.o.ylim = [-L, L];
+    F.o.xticks = Plot.niceTicks(-L, L, 4);
+    F.o.yticks = F.o.xticks;
+    F.clear();
+    F.axes();
+    F.clip();
+    const circ = [[], []];
+    for (let k = 0; k <= 200; k++) { const a = (k / 200) * 2 * Math.PI; circ[0].push(Math.cos(a)); circ[1].push(Math.sin(a)); }
+    F.line(circ[0], circ[1], { color: css("--muted"), width: 1.4, dash: [4, 4] });
+    const stable = maxG().m <= 1 + 1e-9;
+    F.line(pts.map((p) => p[0]), pts.map((p) => p[1]), { color: stable ? css("--accent") : css("--accent2"), width: 2.6 });
+    F.text("unit circle", Math.SQRT1_2, Math.SQRT1_2, { dx: 4, dy: -8, font: "11px Inter, system-ui, sans-serif" });
+    F.unclip();
+  }
+
+  function drawAll() { drawU(); drawST(); drawG(); }
+  uFig.redraw = drawU;
+  stFig.redraw = drawST;
+  gFig.redraw = drawG;
+
+  /* ---------- Loop ---------- */
+  function advance(k) {
+    for (let i = 0; i < k; i++) {
+      stepOnce();
+      const m = maxAbs();
+      if (!isFinite(m) || m > 1e12) { dead = true; break; }
+    }
+    if (dead) {
+      setPlaying(false);
+      const el = $("status");
+      el.className = "status bad";
+      el.textContent = "Blew up after " + n + " steps (max|u| passed 10¹²). Reset to try again.";
+    }
+    readouts();
+    drawU();
+  }
+
+  function frame() {
+    if (!playing) return;
+    advance(+$("spf").value);
+    if (playing) requestAnimationFrame(frame);
+  }
+  function setPlaying(p) {
+    playing = p;
+    $("play").textContent = p ? "Pause" : "Play";
+    if (p) requestAnimationFrame(frame);
+  }
+
+  $("play").addEventListener("click", () => { if (dead) reset(); setPlaying(!playing); });
+  $("step").addEventListener("click", () => { if (dead) reset(); setPlaying(false); advance(1); });
+  $("reset").addEventListener("click", () => { setPlaying(false); reset(); });
+
+  function labels() {
+    $("c-out").textContent = (+$("c").value).toFixed(2);
+    $("N-out").textContent = $("N").value;
+  }
+  ["scheme", "ic", "N", "c"].forEach((id) => {
+    const ev = id === "N" || id === "c" ? "input" : "change";
+    $(id).addEventListener(ev, () => { labels(); setPlaying(false); reset(); });
+  });
+
+  labels();
+  reset();
+})();
+</script>
+<footer><span>© 2026 Aijaz Nazir</span><span>Mathematics · Computing · Learning</span></footer>
+<script src="../../script.js"></script>
+</body>
+</html>
