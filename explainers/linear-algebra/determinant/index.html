@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The determinant | Linear Algebra</title>
+<meta name="description" content="An interactive, geometric explanation of the determinant as an area scaling factor, its sign, and where ad − bc comes from.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}]})"></script>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../la.css">
+</head>
+<body>
+<canvas id="mathCanvas" aria-hidden="true"></canvas>
+<div class="noise"></div>
+
+<header class="nav">
+  <a class="brand" href="../../../index.html#top"><span>AN</span><b>Aijaz Nazir</b></a>
+  <nav>
+    <a href="../../../index.html#research">Research</a>
+    <a href="../../../index.html#projects">Projects</a>
+    <a href="../../../index.html#notes">Notes</a>
+    <a class="active" href="../../../explainers/">Explainers</a>
+    <a href="../../../publications-and-teaching.html">Publications & Teaching</a>
+    <a href="../../../index.html#about">About</a>
+    <a class="nav-cta" href="../../../contact.html">Contact</a>
+  </nav>
+  <button class="menu" aria-label="Open menu">☰</button>
+</header>
+<div class="crumb"><a href="../../">EXPLAINERS</a> / <a href="../">LINEAR ALGEBRA</a> / 04</div>
+<nav class="la-nav" aria-label="Chapters">
+  <a href="../">Overview</a>
+  <a href="../vectors/">01 Vectors</a>
+  <a href="../transformations/">02 Transformations</a>
+  <a href="../composition/">03 Composition</a>
+  <a class="on" aria-current="page" href="../determinant/">04 Determinant</a>
+  <a href="../inverse/">05 Inverse & rank</a>
+  <a href="../eigen/">06 Eigenvectors</a>
+</nav>
+
+<main class="article">
+  <p class="kicker">Linear algebra · Chapter 4 of 6</p>
+  <h1>The determinant measures how areas scale</h1>
+  <p class="lede">Every linear transformation stretches or squishes areas by the same factor everywhere in the plane. That factor, with a sign for orientation, is the determinant.</p>
+
+  <h2>Every area scales by the same factor</h2>
+  <p>Watch the unit square, the one spanned by \(\hat\imath\) and \(\hat\jmath\). A linear transformation sends it to the parallelogram spanned by the two columns. Because grid lines stay parallel and evenly spaced, <em>every</em> grid square lands on a translated copy of that same parallelogram. So every grid square's area is multiplied by the same number.</p>
+  <p>Any region can be approximated by small grid squares, as finely as you like, so its area is multiplied by that number too. One number describes the effect on all areas, and it is the area of the image of the unit square. That number is the <em>determinant</em>, \(\det A\).</p>
+
+  <h2>A sign for orientation</h2>
+  <p>Some transformations flip the plane over, like turning a sheet of paper face down. You can detect this from \(\hat\imath\) and \(\hat\jmath\). Before the transformation, \(\hat\jmath\) is a quarter-turn <em>counterclockwise</em> from \(\hat\imath\). If after the transformation the image of \(\hat\jmath\) is clockwise from the image of \(\hat\imath\), orientation has been reversed, and the determinant is defined to be negative. Its absolute value is still the area factor.</p>
+  <p>Between positive and negative sits zero. A determinant of zero means the unit square was flattened into a segment or a point: the transformation squishes the plane onto a line or onto the origin, and all area is lost.</p>
+
+  <div class="panel" id="p4">
+    <div class="cv-wrap"><canvas id="cv"></canvas></div>
+    <div class="legend">
+      <span><span class="sw i"></span>\(\hat\imath\) (drag at t = 1)</span>
+      <span><span class="sw j"></span>\(\hat\jmath\) (drag at t = 1)</span>
+      <span><span class="sw g"></span>a disc, to show area scaling for any shape</span>
+    </div>
+    <div class="la-row">
+      <div><span class="lbl">Matrix</span><div id="mat"></div></div>
+      <div>
+        <span class="lbl">Presets</span>
+        <div class="presets" id="presets">
+          <button data-m="2,1,0.5,1.5">mixed</button>
+          <button data-m="3,0,0,2">stretch</button>
+          <button data-m="1,1,0,1">shear</button>
+          <button data-m="0.7071,-0.7071,0.7071,0.7071">rotate</button>
+          <button data-m="-1,0,0,1">reflect</button>
+          <button data-m="1,2,0.5,1">squish</button>
+        </div>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="control">
+        <label for="t">Progress t, from identity to the matrix <output id="t-out"></output></label>
+        <input type="range" id="t" min="0" max="1" step="0.01" value="1">
+      </div>
+    </div>
+    <div class="buttons">
+      <button class="primary" id="play">Play</button>
+    </div>
+    <div class="eqline" id="eq"></div>
+    <div class="status" id="status"></div>
+    <div class="try">
+      <strong>Things to try</strong>
+      <ul>
+        <li>Pick "shear". The square tilts into a parallelogram, but its area stays 1: the determinant is 1.</li>
+        <li>Pick "reflect" and drag t slowly. The square thins to nothing at t = 0.5, then reopens with the opposite orientation.</li>
+        <li>Whatever the matrix, the disc's area ratio equals |det|. The disc is computed as a 360-sided polygon, so this is a real measurement.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Where \(ad - bc\) comes from</h2>
+  <p>Write \(D(\vec u, \vec w)\) for the signed area of the parallelogram spanned by \(\vec u\) and \(\vec w\): positive when \(\vec w\) is counterclockwise from \(\vec u\), negative when it is clockwise. Three facts are enough to compute it.</p>
+  <ul>
+    <li>\(D(\hat\imath, \hat\jmath) = 1\): the unit square.</li>
+    <li>\(D(\vec u, \vec u) = 0\): a parallelogram with two equal sides is flat.</li>
+    <li>\(D\) is linear in each argument. Take \(\vec u\) as the base. The area is the length of the base times the height of \(\vec w\) measured perpendicular to it, with a sign for which side \(\vec w\) is on. That signed height is \(\hat n\cdot\vec w\), where \(\hat n\) is the unit vector a quarter-turn counterclockwise from \(\vec u\), so \(D(\vec u, \vec w) = |\vec u|\,(\hat n \cdot \vec w)\), which is linear in \(\vec w\). The same argument with \(\vec w\) as the base gives linearity in \(\vec u\).</li>
+  </ul>
+  <p>The second and third facts together give antisymmetry: expanding \(0 = D(\vec u + \vec w, \vec u + \vec w)\) leaves \(D(\vec u, \vec w) + D(\vec w, \vec u) = 0\). Now write the columns in terms of the basis, \(\vec u = a\hat\imath + c\hat\jmath\) and \(\vec w = b\hat\imath + d\hat\jmath\), and expand:</p>
+  $$D(\vec u, \vec w) = ab\,\underbrace{D(\hat\imath, \hat\imath)}_{0} + ad\,\underbrace{D(\hat\imath, \hat\jmath)}_{1} + cb\,\underbrace{D(\hat\jmath, \hat\imath)}_{-1} + cd\,\underbrace{D(\hat\jmath, \hat\jmath)}_{0} = ad - bc.$$
+  $$\det\begin{bmatrix} a & b \\ c & d \end{bmatrix} = ad - bc.$$
+  <p>The \(ad\) term is the rectangle you would get if \(\hat\imath\) only stretched horizontally and \(\hat\jmath\) only vertically. The \(bc\) term is the correction for how much each column leans toward the other's axis.</p>
+
+  <h2>Determinants multiply</h2>
+  <p>Apply \(A\) and then \(B\). Areas are first multiplied by \(\det A\), then by \(\det B\). The composition \(BA\) therefore multiplies areas by the product:</p>
+  $$\det(BA) = \det(B)\,\det(A).$$
+  <p>From the entry formula this is an unpleasant algebra exercise; from the area picture it is one sentence. It also shows that if either step squishes the plane, so does the whole composition.</p>
+
+  <nav class="la-pager" aria-label="Previous and next chapter">
+    <a class="pv" href="../composition/"><span>← CHAPTER 3</span><b>Multiplication is composition</b></a>
+    <a class="nx" href="../inverse/"><span>CHAPTER 5 →</span><b>Inverses, column space and null space</b></a>
+  </nav>
+</main>
+
+<footer><span>© 2026 Aijaz Nazir</span><span>Mathematics · Computing · Learning</span></footer>
+<script src="../la.js"></script>
+<script>
+(function () {
+  "use strict";
+  const L = LA, $ = (id) => document.getElementById(id);
+  const st = { m: [2, 1, 0.5, 1.5], t: 1, playing: false };
+  const DISC_C = [-2.2, 1.4], DISC_R = 0.75, NSIDES = 360;
+  const disc = [];
+  for (let k = 0; k < NSIDES; k++) {
+    const a = (2 * Math.PI * k) / NSIDES;
+    disc.push([DISC_C[0] + DISC_R * Math.cos(a), DISC_C[1] + DISC_R * Math.sin(a)]);
+  }
+  const SQUARE = [[0, 0], [1, 0], [1, 1], [0, 1]];
+  const area = (pts) => {
+    let s = 0;
+    for (let i = 0; i < pts.length; i++) { const p = pts[i], q = pts[(i + 1) % pts.length]; s += p[0] * q[1] - q[0] * p[1]; }
+    return s / 2; // signed
+  };
+  const A0 = area(disc);
+
+  const P = new L.Plane($("cv"), { range: 4.5, draw, onDrag: () => { mat.set(st.m); update(); } });
+  window.__plane = P;
+  const atEnd = () => !st.playing && st.t === 1;
+  P.addHandle({ get: () => L.col1(st.m), set: (x, y) => { st.m[0] = x; st.m[2] = y; }, color: "--la-i", enabled: atEnd });
+  P.addHandle({ get: () => L.col2(st.m), set: (x, y) => { st.m[1] = x; st.m[3] = y; }, color: "--la-j", enabled: atEnd });
+
+  const mat = L.MatrixInput($("mat"), { value: st.m, onChange: (m) => { st.m = m; setT(1); update(); } });
+  const cur = () => L.lerp(L.I, st.m, st.t);
+
+  function draw(P) {
+    P.baseGrid();
+    const M = cur(), D = L.det(M);
+    P.grid(M, { alpha: 0.38 });
+    const sq = SQUARE.map((p) => L.apply(M, p));
+    const pos = D > 1e-9, neg = D < -1e-9;
+    P.poly(sq, { fill: neg ? "--la-j" : "--la-i", alpha: 0.28, stroke: neg ? "--la-j" : "--la-i", width: 1.5 });
+    const dsc = disc.map((p) => L.apply(M, p));
+    P.poly(dsc, { fill: "--la-grid", alpha: 0.22, stroke: "--la-grid", width: 1.5 });
+    if (pos || neg) P.turn(L.col1(M), L.col2(M), 0.5, { color: neg ? "--la-j" : "--la-i", width: 2 });
+    P.arrow(L.col1(M), { color: "--la-i", label: "î" });
+    P.arrow(L.col2(M), { color: "--la-j", label: "ĵ" });
+    const c = L.apply(M, [0.5, 0.5]);
+    P.text("area " + L.fmt(Math.abs(D)), c, { align: "center", color: "--fg", font: "600 12px 'JetBrains Mono', monospace" });
+    P.hud("t = " + st.t.toFixed(2) + "   det = " + L.fmt(D));
+  }
+
+  function setT(t) { st.t = t; $("t").value = t; $("t-out").textContent = t.toFixed(2); }
+
+  function update() {
+    const M = cur(), D = L.det(M), m = st.m;
+    const A1 = area(disc.map((p) => L.apply(M, p)));
+    $("eq").innerHTML =
+      "det = ad − bc = (" + L.fmt(m[0]) + ")(" + L.fmt(m[3]) + ") − (" + L.fmt(m[1]) + ")(" + L.fmt(m[2]) + ") = <b>" + L.fmt(L.det(m), 3) + "</b>" +
+      (st.t < 1 ? " &nbsp;(at t = " + st.t.toFixed(2) + ": <b>" + L.fmt(D, 3) + "</b>)" : "") +
+      "<br>disc area: <b>" + L.fmt(Math.abs(A0), 4) + "</b> → <b>" + L.fmt(Math.abs(A1), 4) + "</b>, ratio <b>" + L.fmt(Math.abs(A1 / A0), 4) + "</b>";
+    const s = $("status");
+    if (D > 1e-9) { s.className = "status good"; s.textContent = "Orientation preserved: ĵ is still counterclockwise from î. Every area is multiplied by " + L.fmt(D, 3) + "."; }
+    else if (D < -1e-9) { s.className = "status bad"; s.textContent = "Orientation flipped: ĵ is now clockwise from î. Areas are multiplied by " + L.fmt(-D, 3) + " and the sign records the flip."; }
+    else { s.className = "status bad"; s.textContent = "Determinant 0: the square is flattened, so the plane is squished onto a line or a point and every area becomes 0."; }
+    document.querySelectorAll("#presets button").forEach((b) => b.classList.toggle("on", L.close(b.dataset.m.split(",").map(Number), m)));
+    P.render();
+  }
+
+  async function play() {
+    st.playing = true;
+    const ok = await L.tween(1600, (t) => { setT(+t.toFixed(3)); update(); }, "p4");
+    if (ok) { st.playing = false; setT(1); update(); }
+  }
+
+  $("t").addEventListener("input", () => { L.tween.cancel("p4"); st.playing = false; setT(+$("t").value); update(); });
+  $("play").addEventListener("click", play);
+  document.querySelectorAll("#presets button").forEach((b) =>
+    b.addEventListener("click", () => { st.m = b.dataset.m.split(",").map(Number); mat.set(st.m); play(); })
+  );
+  setT(1);
+  update();
+})();
+
+</script>
+<script src="../../../script.js"></script>
+</body>
+</html>

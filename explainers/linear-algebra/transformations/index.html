@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Matrices as transformations | Linear Algebra</title>
+<meta name="description" content="An interactive explanation of linear transformations of the plane and why a 2×2 matrix's columns are where the basis vectors land.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}]})"></script>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../la.css">
+</head>
+<body>
+<canvas id="mathCanvas" aria-hidden="true"></canvas>
+<div class="noise"></div>
+
+<header class="nav">
+  <a class="brand" href="../../../index.html#top"><span>AN</span><b>Aijaz Nazir</b></a>
+  <nav>
+    <a href="../../../index.html#research">Research</a>
+    <a href="../../../index.html#projects">Projects</a>
+    <a href="../../../index.html#notes">Notes</a>
+    <a class="active" href="../../../explainers/">Explainers</a>
+    <a href="../../../publications-and-teaching.html">Publications & Teaching</a>
+    <a href="../../../index.html#about">About</a>
+    <a class="nav-cta" href="../../../contact.html">Contact</a>
+  </nav>
+  <button class="menu" aria-label="Open menu">☰</button>
+</header>
+<div class="crumb"><a href="../../">EXPLAINERS</a> / <a href="../">LINEAR ALGEBRA</a> / 02</div>
+<nav class="la-nav" aria-label="Chapters">
+  <a href="../">Overview</a>
+  <a href="../vectors/">01 Vectors</a>
+  <a class="on" aria-current="page" href="../transformations/">02 Transformations</a>
+  <a href="../composition/">03 Composition</a>
+  <a href="../determinant/">04 Determinant</a>
+  <a href="../inverse/">05 Inverse & rank</a>
+  <a href="../eigen/">06 Eigenvectors</a>
+</nav>
+
+<main class="article">
+  <p class="kicker">Linear algebra · Chapter 2 of 6</p>
+  <h1>A matrix is where î and ĵ land</h1>
+  <p class="lede">A matrix is not a table that happens to multiply vectors. It records where a transformation sends two arrows, and that is enough to know where it sends every arrow.</p>
+
+  <h2>A function that moves the whole plane</h2>
+  <p>A transformation takes each input vector to an output vector. It is just a function, but "transformation" suggests the right picture: instead of following one arrow, imagine every point of the plane moving to its new position at once. Drawing the grid lines after the move shows the whole function in one image.</p>
+
+  <h2>What makes a transformation linear</h2>
+  <p>Algebraically, \(L\) is <em>linear</em> when it respects the two operations from chapter 1:</p>
+  $$L(\vec v + \vec w) = L(\vec v) + L(\vec w), \qquad L(c\,\vec v) = c\,L(\vec v).$$
+  <p>Geometrically this means the origin stays put, and the grid lines remain straight, parallel and evenly spaced. Rotations, reflections, stretches and shears all qualify. A translation does not, because it moves the origin. Neither does anything that bends a grid line or bunches lines more closely on one side.</p>
+
+  <h2>Two arrows decide everything</h2>
+  <p>Here is the key step. Any input can be written in terms of the basis, \(\vec v = x\,\hat\imath + y\,\hat\jmath\). Apply \(L\) and use the two rules:</p>
+  $$L(\vec v) = L(x\,\hat\imath + y\,\hat\jmath) = x\,L(\hat\imath) + y\,L(\hat\jmath).$$
+  <p>The output is the <em>same combination</em> of wherever \(\hat\imath\) and \(\hat\jmath\) landed. So once you know those two landing spots, you know where every vector goes. Suppose \(\hat\imath\) lands on \((a, c)\) and \(\hat\jmath\) on \((b, d)\). Then</p>
+  $$L\begin{bmatrix} x \\ y \end{bmatrix} = x\begin{bmatrix} a \\ c \end{bmatrix} + y\begin{bmatrix} b \\ d \end{bmatrix} = \begin{bmatrix} ax + by \\ cx + dy \end{bmatrix}.$$
+  <p>Writing the two landing spots side by side as columns gives the matrix of \(L\):</p>
+  $$\begin{bmatrix} \color{#b7ff3c}{a} & \color{#ff7a45}{b} \\ \color{#b7ff3c}{c} & \color{#ff7a45}{d} \end{bmatrix}\begin{bmatrix} x \\ y \end{bmatrix} = x\begin{bmatrix} \color{#b7ff3c}{a} \\ \color{#b7ff3c}{c} \end{bmatrix} + y\begin{bmatrix} \color{#ff7a45}{b} \\ \color{#ff7a45}{d} \end{bmatrix}.$$
+  <p>That is the definition of a matrix times a vector, and the reason behind it. The first column is where \(\hat\imath\) lands, the second is where \(\hat\jmath\) lands, and multiplying by a vector means "take that combination of the columns".</p>
+
+  <div class="panel" id="p2">
+    <div class="cv-wrap"><canvas id="cv"></canvas></div>
+    <div class="legend">
+      <span><span class="sw i"></span>where \(\hat\imath\) lands (drag)</span>
+      <span><span class="sw j"></span>where \(\hat\jmath\) lands (drag)</span>
+      <span><span class="sw v"></span>\(\vec v\) before (dashed, drag) and \(L(\vec v)\) after</span>
+      <span><span class="sw g"></span>the moved grid</span>
+    </div>
+    <div class="la-row">
+      <div><span class="lbl">Matrix</span><div id="mat"></div></div>
+      <div>
+        <span class="lbl">Presets</span>
+        <div class="presets" id="presets">
+          <button data-m="1,0,0,1">identity</button>
+          <button data-m="0,-1,1,0">rotate 90°</button>
+          <button data-m="1,1,0,1">shear</button>
+          <button data-m="2,0,0,0.5">stretch</button>
+          <button data-m="-1,0,0,1">reflect</button>
+          <button data-m="1,2,0.5,1">squish</button>
+        </div>
+      </div>
+    </div>
+    <div class="buttons">
+      <button class="primary" id="play">Play transformation</button>
+      <label class="check"><input type="checkbox" id="parts" checked> show x·L(î) + y·L(ĵ)</label>
+    </div>
+    <div class="eqline" id="eq"></div>
+    <div class="status" id="status"></div>
+    <div class="try">
+      <strong>Things to try</strong>
+      <ul>
+        <li>Drag the lime and orange arrow tips. The matrix columns change with them, because they are the same numbers.</li>
+        <li>Drag the dashed yellow input \(\vec v\) to \((2, 1)\). Its image is exactly twice the lime arrow plus the orange arrow.</li>
+        <li>Pick "squish": the two columns point along the same line, and the whole plane is flattened onto it.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Reading a few matrices</h2>
+  <p><strong>Rotation by 90°.</strong> \(\hat\imath\) swings up to \((0, 1)\) and \(\hat\jmath\) swings left to \((-1, 0)\), so the matrix is \(\begin{bmatrix} 0 & -1 \\ 1 & 0\end{bmatrix}\). Nothing to memorize: you can read off where the arrows went.</p>
+  <p><strong>Shear.</strong> \(\hat\imath\) stays put and \(\hat\jmath\) tips over to \((1, 1)\): \(\begin{bmatrix} 1 & 1 \\ 0 & 1\end{bmatrix}\). Horizontal lines slide sideways by an amount proportional to their height.</p>
+  <p><strong>Squish.</strong> If the two columns are parallel, say \((1, 0.5)\) and \((2, 1)\), every output \(x\,\text{col}_1 + y\,\text{col}_2\) lies on their common line. The 2D plane is flattened onto 1D, and chapter 5 is about what that costs.</p>
+
+  <div class="note">
+    <strong>About the animation.</strong> "Play" slides each matrix entry linearly from the identity to its target, so frame \(t\) shows the transformation \((1-t)I + tA\). The intermediate frames are only a way to watch the motion, not part of the transformation. For a rotation they briefly shrink the plane: the entries travel in straight lines rather than around a circle, so halfway to a 90° turn the frame is a 45° turn combined with a shrink by \(1/\sqrt2\).
+  </div>
+
+  <nav class="la-pager" aria-label="Previous and next chapter">
+    <a class="pv" href="../vectors/"><span>← CHAPTER 1</span><b>Vectors, span and basis</b></a>
+    <a class="nx" href="../composition/"><span>CHAPTER 3 →</span><b>Multiplication is composition</b></a>
+  </nav>
+</main>
+
+<footer><span>© 2026 Aijaz Nazir</span><span>Mathematics · Computing · Learning</span></footer>
+<script src="../la.js"></script>
+<script>
+(function () {
+  "use strict";
+  const L = LA, $ = (id) => document.getElementById(id);
+  const st = { m: [2, -1, 1, 1], v: [1, 2], t: 1, playing: false };
+
+  const P = new L.Plane($("cv"), { range: 5, draw, onDrag: update });
+  window.__plane = P;
+  const still = () => !st.playing;
+
+  P.addHandle({ get: () => L.col1(st.m), set: (x, y) => { st.m[0] = x; st.m[2] = y; mat.set(st.m); }, color: "--la-i", enabled: still });
+  P.addHandle({ get: () => L.col2(st.m), set: (x, y) => { st.m[1] = x; st.m[3] = y; mat.set(st.m); }, color: "--la-j", enabled: still });
+  P.addHandle({ get: () => st.v, set: (x, y) => { st.v = [x, y]; }, color: "--la-v", enabled: still });
+
+  const mat = L.MatrixInput($("mat"), { value: st.m, onChange: (m) => { st.m = m; st.t = 1; update(); } });
+
+  function draw(P) {
+    P.baseGrid();
+    const M = L.lerp(L.I, st.m, st.t);
+    P.grid(M);
+    const ih = L.col1(M), jh = L.col2(M), Lv = L.apply(M, st.v);
+    P.arrow(st.v, { color: "--la-v", width: 2, dash: [5, 5], alpha: 0.5, head: 9, label: "v" });
+    if ($("parts").checked) {
+      const xi = L.scale(ih, st.v[0]);
+      P.arrow(xi, { color: "--la-i", width: 2, dash: [6, 5], alpha: 0.7, head: 9 });
+      P.arrow(L.scale(jh, st.v[1]), { from: xi, color: "--la-j", width: 2, dash: [6, 5], alpha: 0.7, head: 9 });
+    }
+    P.arrow(Lv, { color: "--la-v", width: 3.5, label: "L(v)" });
+    P.arrow(ih, { color: "--la-i", label: "î" });
+    P.arrow(jh, { color: "--la-j", label: "ĵ" });
+    if (st.playing) P.hud("t = " + st.t.toFixed(2));
+  }
+
+  function update() {
+    const m = st.m, x = st.v[0], y = st.v[1];
+    $("eq").innerHTML =
+      "v = <b>" + L.vfmt(st.v) + "</b> &nbsp;→&nbsp; L(v) = " +
+      '<span class="cvv">' + L.fmt(x) + '</span>·<span class="ci">' + L.vfmt(L.col1(m)) + "</span> + " +
+      '<span class="cvv">' + L.fmt(y) + '</span>·<span class="cj">' + L.vfmt(L.col2(m)) + "</span> = <b>" + L.vfmt(L.apply(m, st.v)) + "</b>";
+    const s = $("status");
+    if (Math.abs(L.cross(L.col1(m), L.col2(m))) < 1e-9) {
+      s.className = "status bad";
+      s.textContent = L.norm(L.col1(m)) + L.norm(L.col2(m)) < 1e-9
+        ? "Both columns are zero: every vector is sent to the origin."
+        : "The columns are parallel: the whole plane is squished onto a single line.";
+    } else {
+      s.className = "status good";
+      s.textContent = "The columns point in different directions, so the moved grid still covers the whole plane.";
+    }
+    document.querySelectorAll("#presets button").forEach((b) => b.classList.toggle("on", L.close(b.dataset.m.split(",").map(Number), m)));
+    P.render();
+  }
+
+  async function play() {
+    st.playing = true;
+    const done = await L.tween(1400, (t) => { st.t = t; P.render(); }, "p2");
+    if (done) { st.playing = false; st.t = 1; update(); }
+  }
+
+  $("play").addEventListener("click", play);
+  $("parts").addEventListener("change", update);
+  document.querySelectorAll("#presets button").forEach((b) =>
+    b.addEventListener("click", () => { st.m = b.dataset.m.split(",").map(Number); mat.set(st.m); update(); play(); })
+  );
+  update();
+})();
+
+</script>
+<script src="../../../script.js"></script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eigenvectors and eigenvalues | Linear Algebra</title>
+<meta name="description" content="An interactive explanation of eigenvectors, eigenvalues, the characteristic polynomial, eigenbases and repeated application.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}]})"></script>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../la.css">
+</head>
+<body>
+<canvas id="mathCanvas" aria-hidden="true"></canvas>
+<div class="noise"></div>
+
+<header class="nav">
+  <a class="brand" href="../../../index.html#top"><span>AN</span><b>Aijaz Nazir</b></a>
+  <nav>
+    <a href="../../../index.html#research">Research</a>
+    <a href="../../../index.html#projects">Projects</a>
+    <a href="../../../index.html#notes">Notes</a>
+    <a class="active" href="../../../explainers/">Explainers</a>
+    <a href="../../../publications-and-teaching.html">Publications & Teaching</a>
+    <a href="../../../index.html#about">About</a>
+    <a class="nav-cta" href="../../../contact.html">Contact</a>
+  </nav>
+  <button class="menu" aria-label="Open menu">☰</button>
+</header>
+<div class="crumb"><a href="../../">EXPLAINERS</a> / <a href="../">LINEAR ALGEBRA</a> / 06</div>
+<nav class="la-nav" aria-label="Chapters">
+  <a href="../">Overview</a>
+  <a href="../vectors/">01 Vectors</a>
+  <a href="../transformations/">02 Transformations</a>
+  <a href="../composition/">03 Composition</a>
+  <a href="../determinant/">04 Determinant</a>
+  <a href="../inverse/">05 Inverse & rank</a>
+  <a class="on" aria-current="page" href="../eigen/">06 Eigenvectors</a>
+</nav>
+
+<main class="article">
+  <p class="kicker">Linear algebra · Chapter 6 of 6</p>
+  <h1>Eigenvectors: the directions a transformation keeps</h1>
+  <p class="lede">Under most transformations almost every vector is knocked off the line it started on. The few directions that are not knocked off are the eigenvectors, and they are the simplest way to describe what the transformation does.</p>
+
+  <h2>Most vectors get knocked off their line</h2>
+  <p>Pick a vector \(\vec v\) and think about its span, the line through the origin and \(\vec v\). Apply a transformation and look at \(A\vec v\). For most vectors and most transformations, \(A\vec v\) is no longer on that line: the vector has been rotated as well as stretched.</p>
+  <p>A few special directions behave differently. Vectors along them stay on their own line, and are only stretched, shrunk or flipped:</p>
+  $$A\vec v = \lambda\,\vec v, \qquad \vec v \neq \vec 0.$$
+  <p>Such a \(\vec v\) is an <em>eigenvector</em> of \(A\), and the factor \(\lambda\) is its <em>eigenvalue</em>. A negative \(\lambda\) flips the vector to the other side of the origin but keeps it on the same line, and \(\lambda = 0\) means that direction is crushed to the origin: it is the null space from chapter 5.</p>
+
+  <h2>An example by hand</h2>
+  <p>Take \(A = \begin{bmatrix} 3 & 1 \\ 0 & 2 \end{bmatrix}\). The first column says \(\hat\imath\) lands on \((3, 0)\): still on the horizontal axis, three times as long. So \(\hat\imath\) is an eigenvector with \(\lambda = 3\). Less obviously,</p>
+  $$A\begin{bmatrix} -1 \\ 1 \end{bmatrix} = \begin{bmatrix} -3 + 1 \\ 0 + 2 \end{bmatrix} = \begin{bmatrix} -2 \\ 2 \end{bmatrix} = 2\begin{bmatrix} -1 \\ 1 \end{bmatrix},$$
+  <p>so the diagonal direction \((-1, 1)\) is an eigenvector with \(\lambda = 2\). Every other direction gets turned. This is the first preset in the visualizer.</p>
+
+  <h2>Finding them: a question about the determinant</h2>
+  <p>Rewrite the eigenvector equation as</p>
+  $$A\vec v - \lambda\vec v = \vec 0 \quad\Longleftrightarrow\quad (A - \lambda I)\,\vec v = \vec 0 .$$
+  <p>So \(\vec v\) must be a nonzero vector that the matrix \(A - \lambda I\) sends to the origin. By chapter 5 that happens exactly when \(A - \lambda I\) squishes the plane, that is, when</p>
+  $$\det(A - \lambda I) = 0 .$$
+  <p>For a 2×2 matrix this is \((a - \lambda)(d - \lambda) - bc = 0\), which expands to</p>
+  $$\lambda^2 - \operatorname{tr}(A)\,\lambda + \det(A) = 0, \qquad \operatorname{tr}(A) = a + d .$$
+  <p>For the example, \(\lambda^2 - 5\lambda + 6 = (\lambda - 3)(\lambda - 2)\), giving the two eigenvalues found by hand. Each root \(\lambda\) is then turned into a direction by finding the null space of \(A - \lambda I\).</p>
+
+  <div class="panel" id="p6">
+    <div class="cv-wrap"><canvas id="cv"></canvas></div>
+    <div class="legend">
+      <span><span class="sw e"></span>eigen-directions, labelled with \(\lambda\)</span>
+      <span><span class="sw v"></span>\(\vec v\) (dashed, drag) and \(A\vec v\)</span>
+      <span><span class="sw g"></span>images of many unit vectors</span>
+    </div>
+    <div class="la-row">
+      <div><span class="lbl">Matrix A</span><div id="mat"></div></div>
+      <div>
+        <span class="lbl">Presets</span>
+        <div class="presets" id="presets">
+          <button data-m="3,1,0,2">example</button>
+          <button data-m="2,1,1,2">symmetric</button>
+          <button data-m="1,0,0,-1">reflection</button>
+          <button data-m="1,1,0,1">shear</button>
+          <button data-m="0,-1,1,0">rotation</button>
+          <button data-m="2,0,0,2">uniform scale</button>
+        </div>
+      </div>
+    </div>
+    <div class="buttons">
+      <button class="primary" id="play">Play transformation</button>
+      <button id="iter">Apply A again to v</button>
+      <button id="reset">Reset v</button>
+      <label class="check"><input type="checkbox" id="fan" checked> many vectors</label>
+    </div>
+    <div class="eqline" id="eq"></div>
+    <div class="status" id="status"></div>
+    <div class="try">
+      <strong>Things to try</strong>
+      <ul>
+        <li>Press Play and watch the cyan arrows. Only the ones on the magenta lines move straight out or in; every other one swings.</li>
+        <li>Drag \(\vec v\) close to a magenta line; it snaps on, and \(A\vec v\) lands on the same line.</li>
+        <li>Press "Apply A again" a few times from almost any starting \(\vec v\). Its direction creeps toward the eigen-direction with the larger \(|\lambda|\).</li>
+        <li>Try the rotation: no magenta lines at all.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Three ways it can turn out</h2>
+  <p><strong>Two real eigenvalues.</strong> Two distinct eigen-directions, as in the example. A symmetric matrix (\(b = c\)) always lands here or in the uniform-scale case, and its eigen-directions are perpendicular.</p>
+  <p><strong>Complex eigenvalues.</strong> A 90° rotation turns every vector, so it has no real eigenvectors. The algebra agrees: \(\lambda^2 + 1 = 0\) has the roots \(\pm i\). Whenever a real 2×2 matrix has complex eigenvalues \(\alpha \pm \beta i\) with \(\beta \neq 0\), it turns every direction.</p>
+  <p><strong>A repeated eigenvalue.</strong> The shear \(\begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix}\) has \((\lambda - 1)^2 = 0\), one eigenvalue counted twice, but only one eigen-direction, the horizontal axis. At the other extreme a uniform scaling \(2I\) also has \(\lambda = 2\) twice, and there every vector is an eigenvector.</p>
+
+  <h2>Why they matter: an eigenbasis</h2>
+  <p>Suppose \(A\) has two independent eigenvectors \(\vec e_1, \vec e_2\). Use them as a basis (chapter 1) and write \(\vec v = a\,\vec e_1 + b\,\vec e_2\). Then applying \(A\) is just scaling each coordinate:</p>
+  $$A\vec v = a\lambda_1\vec e_1 + b\lambda_2\vec e_2, \qquad A^n\vec v = a\lambda_1^{\,n}\vec e_1 + b\lambda_2^{\,n}\vec e_2 .$$
+  <p>In that basis the matrix is diagonal, and repeated application, which would otherwise mean multiplying matrices over and over, becomes raising two numbers to a power. If \(|\lambda_1| &gt; |\lambda_2|\) and \(a \neq 0\), the first term dominates as \(n\) grows, so the direction of \(A^n\vec v\) approaches the line of \(\vec e_1\). The "Apply A again" button shows exactly this. As an algorithm it is called power iteration, and it is how dominant eigenvectors of very large matrices are computed in practice.</p>
+
+  <div class="note">
+    <strong>A detail of the animation.</strong> "Play" shows \((1-t)I + tA\) for \(t\) from 0 to 1. Every eigenvector of \(A\) is an eigenvector of each of these frames too: \(\big((1-t)I + tA\big)\vec v = \big((1-t) + t\lambda\big)\vec v\). So vectors on the magenta lines stay on them for the whole animation, not just at the end.
+  </div>
+
+  <div class="note">
+    <strong>Where these ideas come from.</strong> The geometric approach of this series, transformations first and formulas second, follows the one made popular by 3Blue1Brown's <a href="https://www.3blue1brown.com/lessons/eola-preview" target="_blank" rel="noopener">Essence of Linear Algebra</a> videos, which are worth watching alongside. The text and visualizers here are original.
+  </div>
+
+  <nav class="la-pager" aria-label="Previous and next chapter">
+    <a class="pv" href="../inverse/"><span>← CHAPTER 5</span><b>Inverses, column space and null space</b></a>
+    <a class="nx" href="../"><span>SERIES →</span><b>Back to the overview</b></a>
+  </nav>
+</main>
+
+<footer><span>© 2026 Aijaz Nazir</span><span>Mathematics · Computing · Learning</span></footer>
+<script src="../la.js"></script>
+<script>
+(function () {
+  "use strict";
+  const L = LA, $ = (id) => document.getElementById(id);
+  const V0 = [1.2, 1.8];
+  const st = { m: [3, 1, 0, 2], t: 1, v: V0.slice(), trail: [], n: 0, playing: false };
+  const FAN = 24, FANR = 1.6;
+
+  const P = new L.Plane($("cv"), { range: 5, draw, onDrag: () => { st.trail = []; st.n = 0; mat.set(st.m); update(); } });
+  window.__plane = P;
+  const still = () => !st.playing;
+
+  P.addHandle({
+    get: () => st.v, set: (x, y) => { st.v = [x, y]; }, color: "--la-v", enabled: still,
+    snap: (x, y) => {
+      // snap onto an eigen-direction when within 3 degrees of it
+      const e = L.eig(st.m), p = [x, y], r = L.norm(p);
+      if (!e.complex && !e.all && r > 0.3)
+        for (const d of e.vectors) {
+          const proj = L.dot(p, d);
+          if (Math.abs(L.cross(d, p)) / r < Math.sin((3 * Math.PI) / 180)) return L.scale(d, proj);
+        }
+      return [L.snap(x), L.snap(y)];
+    },
+  });
+  P.addHandle({ get: () => L.col1(st.m), set: (x, y) => { st.m[0] = x; st.m[2] = y; }, color: "--la-i", enabled: still });
+  P.addHandle({ get: () => L.col2(st.m), set: (x, y) => { st.m[1] = x; st.m[3] = y; }, color: "--la-j", enabled: still });
+
+  const mat = L.MatrixInput($("mat"), { value: st.m, onChange: (m) => { st.m = m; st.t = 1; st.trail = []; st.n = 0; update(); } });
+
+  function onEigLine(u, e) {
+    if (e.all) return true;
+    if (e.complex) return false;
+    return e.vectors.some((d) => Math.abs(L.cross(d, L.unit(u))) < 1e-6);
+  }
+
+  function draw(P) {
+    P.baseGrid();
+    const M = L.lerp(L.I, st.m, st.t), e = L.eig(st.m);
+    P.grid(M, { alpha: 0.3 });
+    if (!e.complex && !e.all) {
+      e.vectors.forEach((d, i) => {
+        P.line(d, { color: "--la-eig", width: 2, alpha: 0.85 });
+        const lam = e.repeated ? e.values[0] : e.values[i];
+        P.text("λ = " + L.fmt(lam), P.edge(d, 44), { color: "--la-eig", align: "center", dy: -12, font: "600 12px 'JetBrains Mono', monospace" });
+      });
+    }
+    if ($("fan").checked) {
+      const us = [];
+      for (let k = 0; k < FAN; k++) { const a = (2 * Math.PI * k) / FAN; us.push([FANR * Math.cos(a), FANR * Math.sin(a)]); }
+      if (!e.complex && !e.all) e.vectors.forEach((d) => { us.push(L.scale(d, FANR)); us.push(L.scale(d, -FANR)); });
+      us.forEach((u) => {
+        const on = onEigLine(u, e);
+        P.arrow(L.apply(M, u), { color: on ? "--la-eig" : "--la-grid", width: on ? 2.5 : 1.4, head: on ? 9 : 7, alpha: on ? 1 : 0.55 });
+      });
+    }
+    st.trail.forEach((p, i) => P.dot(p, { r: 3, color: "--la-v", alpha: 0.25 + (0.5 * (i + 1)) / st.trail.length }));
+    P.line(st.v, { color: "--la-v", width: 1, dash: [3, 6], alpha: 0.45 });
+    P.arrow(st.v, { color: "--la-v", width: 2, dash: [5, 5], alpha: 0.6, head: 9, label: "v" });
+    P.arrow(L.apply(M, st.v), { color: "--la-v", width: 3.5, label: "Av" });
+    if (e.complex) P.hud("no real eigen-directions: λ = " + L.fmt(e.re) + " ± " + L.fmt(e.im) + "i", { color: "--la-eig" });
+    else if (e.all) P.hud("every direction is an eigen-direction (λ = " + L.fmt(e.values[0]) + ")", { color: "--la-eig" });
+    else if (st.playing) P.hud("t = " + st.t.toFixed(2));
+  }
+
+  function angleOff(v, w) {
+    if (L.norm(v) < 1e-9 || L.norm(w) < 1e-9) return 0;
+    const a = Math.abs(Math.atan2(L.cross(v, w), L.dot(v, w)));
+    return Math.min(a, Math.PI - a) * 180 / Math.PI; // angle between lines, 0..90
+  }
+
+  function update() {
+    const m = st.m, e = L.eig(m), Av = L.apply(m, st.v);
+    const tr = m[0] + m[3], D = L.det(m);
+    let eq = "characteristic polynomial: <b>λ² − (" + L.fmt(tr) + ")λ + (" + L.fmt(D) + ") = 0</b>";
+    if (e.complex) eq += " &nbsp;→&nbsp; λ = <b>" + L.fmt(e.re) + " ± " + L.fmt(e.im) + "i</b>";
+    else if (e.repeated || e.all) eq += " &nbsp;→&nbsp; λ = <b>" + L.fmt(e.values[0]) + "</b> (twice)";
+    else eq += ' &nbsp;→&nbsp; <span class="ce">λ₁ = <b>' + L.fmt(e.values[0]) + "</b>, λ₂ = <b>" + L.fmt(e.values[1]) + "</b></span>";
+    const off = angleOff(st.v, Av);
+    eq += "<br>v = <b>" + L.vfmt(st.v) + "</b> &nbsp; Av = <b>" + L.vfmt(Av) + "</b> &nbsp; angle between their lines: <b>" + L.fmt(off, 1) + "°</b>";
+    if (st.n > 0 && !e.complex && !e.all && !e.repeated && Math.abs(Math.abs(e.values[0]) - Math.abs(e.values[1])) > 1e-9) {
+      const dom = Math.abs(e.values[0]) > Math.abs(e.values[1]) ? e.vectors[0] : e.vectors[1];
+      eq += "<br>after <b>" + st.n + "</b> applications: v is <b>" + L.fmt(angleOff(st.v, dom), 2) + "°</b> from the dominant eigen-direction";
+    }
+    $("eq").innerHTML = eq;
+    const s = $("status");
+    if (L.norm(st.v) < 1e-9) { s.className = "status"; s.textContent = "v is the zero vector, which never counts as an eigenvector."; }
+    else if (off < 0.05) {
+      s.className = "status good";
+      const lam = L.dot(Av, st.v) / L.dot(st.v, st.v);
+      s.textContent = "Av stays on v's line: v is an eigenvector, with Av = " + L.fmt(lam) + "·v.";
+    } else { s.className = "status bad"; s.textContent = "Av is knocked " + L.fmt(off, 1) + "° off the line through v, so v is not an eigenvector."; }
+    document.querySelectorAll("#presets button").forEach((b) => b.classList.toggle("on", L.close(b.dataset.m.split(",").map(Number), m)));
+    P.render();
+  }
+
+  async function play() {
+    st.playing = true;
+    const ok = await L.tween(1600, (t) => { st.t = t; P.render(); }, "p6");
+    if (ok) { st.playing = false; st.t = 1; update(); }
+  }
+
+  $("play").addEventListener("click", play);
+  $("fan").addEventListener("change", () => P.render());
+  $("iter").addEventListener("click", () => {
+    const w = L.apply(st.m, st.v);
+    if (L.norm(w) < 1e-9) return;
+    st.trail.push(st.v);
+    if (st.trail.length > 30) st.trail.shift();
+    st.v = L.scale(L.unit(w), 2.4); // keep it on screen; only the direction matters
+    st.n++;
+    update();
+  });
+  $("reset").addEventListener("click", () => { st.v = V0.slice(); st.trail = []; st.n = 0; update(); });
+  document.querySelectorAll("#presets button").forEach((b) =>
+    b.addEventListener("click", () => {
+      st.m = b.dataset.m.split(",").map(Number);
+      mat.set(st.m);
+      st.trail = []; st.n = 0;
+      update();
+      play();
+    })
+  );
+  update();
+})();
+
+</script>
+<script src="../../../script.js"></script>
+</body>
+</html>

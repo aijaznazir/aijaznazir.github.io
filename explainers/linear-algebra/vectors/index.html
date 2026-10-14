@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vectors, span and basis | Linear Algebra</title>
+<meta name="description" content="An interactive, geometric introduction to vectors, linear combinations, span, linear independence and basis.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}]})"></script>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../la.css">
+</head>
+<body>
+<canvas id="mathCanvas" aria-hidden="true"></canvas>
+<div class="noise"></div>
+
+<header class="nav">
+  <a class="brand" href="../../../index.html#top"><span>AN</span><b>Aijaz Nazir</b></a>
+  <nav>
+    <a href="../../../index.html#research">Research</a>
+    <a href="../../../index.html#projects">Projects</a>
+    <a href="../../../index.html#notes">Notes</a>
+    <a class="active" href="../../../explainers/">Explainers</a>
+    <a href="../../../publications-and-teaching.html">Publications & Teaching</a>
+    <a href="../../../index.html#about">About</a>
+    <a class="nav-cta" href="../../../contact.html">Contact</a>
+  </nav>
+  <button class="menu" aria-label="Open menu">☰</button>
+</header>
+<div class="crumb"><a href="../../">EXPLAINERS</a> / <a href="../">LINEAR ALGEBRA</a> / 01</div>
+<nav class="la-nav" aria-label="Chapters">
+  <a href="../">Overview</a>
+  <a class="on" aria-current="page" href="../vectors/">01 Vectors</a>
+  <a href="../transformations/">02 Transformations</a>
+  <a href="../composition/">03 Composition</a>
+  <a href="../determinant/">04 Determinant</a>
+  <a href="../inverse/">05 Inverse & rank</a>
+  <a href="../eigen/">06 Eigenvectors</a>
+</nav>
+
+<main class="article">
+  <p class="kicker">Linear algebra · Chapter 1 of 6</p>
+  <h1>Vectors, span and basis</h1>
+  <p class="lede">What a list of numbers means as an arrow, what it means to combine arrows, and why two of them are usually enough to reach every point of the plane.</p>
+
+  <h2>An arrow, and a list of two numbers</h2>
+  <p>In this series a vector in the plane is an arrow whose tail sits at the origin. Two numbers describe it, its coordinates:</p>
+  $$\vec v = \begin{bmatrix} 3 \\ 2 \end{bmatrix}$$
+  <p>reads as an instruction: walk 3 units along the horizontal axis, then 2 units up. Because every arrow starts at the origin, an arrow and the point at its tip determine each other. Later chapters switch freely between the two pictures: arrows when there are only a few vectors, points when there are many.</p>
+
+  <h2>The only two things you can do</h2>
+  <p><strong>Add.</strong> To form \(\vec v + \vec w\), slide \(\vec w\) so that its tail sits at the tip of \(\vec v\); the sum is the arrow to where you end up. In coordinates this is entry by entry, because the horizontal steps and the vertical steps of the two walks can be taken in any order:</p>
+  $$\begin{bmatrix} v_1 \\ v_2 \end{bmatrix} + \begin{bmatrix} w_1 \\ w_2 \end{bmatrix} = \begin{bmatrix} v_1 + w_1 \\ v_2 + w_2 \end{bmatrix}.$$
+  <p><strong>Scale.</strong> Multiplying by a number \(c\) stretches the arrow by the factor \(c\), and a negative \(c\) also flips it to point the other way. Numbers used this way are called <em>scalars</em>, because scaling is what they do.</p>
+  <p>Everything "linear" in linear algebra is built from these two operations.</p>
+
+  <h2>Coordinates are hidden scalars</h2>
+  <p>Name the two unit arrows along the axes \(\hat\imath = (1, 0)\) and \(\hat\jmath = (0, 1)\). Then</p>
+  $$\begin{bmatrix} 3 \\ 2 \end{bmatrix} = 3\,\hat\imath + 2\,\hat\jmath .$$
+  <p>The coordinates are the two scalars that stretch \(\hat\imath\) and \(\hat\jmath\) before adding them. This reading matters later. It says coordinates only mean something relative to a chosen pair of arrows, the <em>basis</em>. Choose a different pair and the same arrow is described by different numbers.</p>
+
+  <h2>Linear combinations and span</h2>
+  <p>Given two vectors \(\vec v\) and \(\vec w\), any expression</p>
+  $$a\,\vec v + b\,\vec w$$
+  <p>is a <em>linear combination</em> of them. Let \(a\) and \(b\) range over all real numbers and the tips sweep out a set called the <em>span</em> of \(\vec v\) and \(\vec w\). Only three things can happen:</p>
+  <ul>
+    <li><strong>Different directions:</strong> the span is the whole plane. The lines through \(\vec v\) and through \(\vec w\) act like a slanted coordinate grid, and every point has a parallelogram route back to the origin along those two directions.</li>
+    <li><strong>Same line:</strong> if \(\vec w\) is a multiple of \(\vec v\) (and they are not both zero), every combination stays on that one line, so the span is the line.</li>
+    <li><strong>Both zero:</strong> the span is the origin alone.</li>
+  </ul>
+
+  <div class="panel" id="p1">
+    <div class="cv-wrap"><canvas id="cv"></canvas></div>
+    <div class="legend">
+      <span><span class="sw i"></span>\(\vec v\) (drag)</span>
+      <span><span class="sw j"></span>\(\vec w\) (drag)</span>
+      <span><span class="sw v"></span>\(a\vec v + b\vec w\) (drag the tip too)</span>
+      <span><span class="sw g"></span>grid built from \(\vec v\) and \(\vec w\)</span>
+    </div>
+    <div class="controls">
+      <div class="control">
+        <label for="a">Scalar a <output id="a-out"></output></label>
+        <input type="range" id="a" min="-4" max="4" step="0.05" value="1">
+      </div>
+      <div class="control">
+        <label for="b">Scalar b <output id="b-out"></output></label>
+        <input type="range" id="b" min="-4" max="4" step="0.05" value="1">
+      </div>
+    </div>
+    <div class="buttons">
+      <button class="primary" id="scatter">Scatter 400 random combinations</button>
+      <button id="clear">Clear dots</button>
+      <button id="lineup">Line w up with v</button>
+      <button id="reset">Reset</button>
+      <label class="check"><input type="checkbox" id="show-grid" checked> v, w grid</label>
+      <label class="check"><input type="checkbox" id="show-parts" checked> show a·v and b·w</label>
+    </div>
+    <div class="eqline" id="eq"></div>
+    <div class="status" id="status"></div>
+    <div class="try">
+      <strong>Things to try</strong>
+      <ul>
+        <li>Scatter random combinations with \(\vec v\) and \(\vec w\) in different directions. The dots spread over the whole plane.</li>
+        <li>Press "Line w up with v" and scatter again. Every dot lands on one line, and the cyan grid collapses onto it.</li>
+        <li>Drag the yellow tip around. For independent \(\vec v,\vec w\) the sliders find the one pair \((a, b)\) that reaches it.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Redundancy: linear dependence</h2>
+  <p>On the same line, one of the two vectors adds nothing: anything you can reach with both, you could already reach with one. Vectors like that are called <em>linearly dependent</em>. The precise definition, which works for any number of vectors, is that some combination with scalars not all zero gives the zero vector:</p>
+  $$a\,\vec v + b\,\vec w = \vec 0 \quad\text{with } (a, b) \neq (0, 0).$$
+  <p>If \(b \ne 0\) this rearranges to \(\vec w = -\tfrac{a}{b}\vec v\), which is "\(\vec w\) lies on \(\vec v\)'s line". If no such combination exists, the vectors are <em>linearly independent</em>: each one adds a new direction.</p>
+
+  <h2>Basis: just enough vectors</h2>
+  <p>A <em>basis</em> of a space is a set of linearly independent vectors that spans it. In the plane, any two vectors pointing in different directions form a basis, and every vector \(\vec p\) then has exactly one pair of coordinates \((a, b)\) with \(\vec p = a\vec v + b\vec w\). Existence is the span argument above. Uniqueness is independence: if two pairs worked,</p>
+  $$a\vec v + b\vec w = a'\vec v + b'\vec w \;\Longrightarrow\; (a - a')\vec v + (b - b')\vec w = \vec 0,$$
+  <p>and independence forces \(a = a'\) and \(b = b'\). That is why dragging the yellow tip in the visualizer always moves the sliders to a single answer, until \(\vec v\) and \(\vec w\) line up and the answer either disappears or stops being unique.</p>
+  <p>So "the coordinates of a vector" always means "its coordinates in some basis". The standard basis \(\hat\imath, \hat\jmath\) is just the default. The next chapter asks what happens when you move \(\hat\imath\) and \(\hat\jmath\) themselves.</p>
+
+  <nav class="la-pager" aria-label="Previous and next chapter">
+    <a class="pv" href="../"><span>← SERIES</span><b>Overview</b></a>
+    <a class="nx" href="../transformations/"><span>CHAPTER 2 →</span><b>Matrices as transformations</b></a>
+  </nav>
+</main>
+
+<footer><span>© 2026 Aijaz Nazir</span><span>Mathematics · Computing · Learning</span></footer>
+<script src="../la.js"></script>
+<script>
+(function () {
+  "use strict";
+  const L = LA, $ = (id) => document.getElementById(id);
+  const DEF = { v: [2, 1], w: [-1, 1.5], a: 1, b: 1 };
+  const st = { v: DEF.v.slice(), w: DEF.w.slice(), a: DEF.a, b: DEF.b, dots: [] };
+
+  const indep = () => Math.abs(L.cross(st.v, st.w)) > 1e-9;
+  const result = () => L.add(L.scale(st.v, st.a), L.scale(st.w, st.b));
+
+  const P = new L.Plane($("cv"), { range: 5, draw, onDrag: update });
+  window.__plane = P;
+
+  P.addHandle({ get: () => st.v, set: (x, y) => { st.v = [x, y]; }, color: "--la-i" });
+  P.addHandle({ get: () => st.w, set: (x, y) => { st.w = [x, y]; }, color: "--la-j" });
+  P.addHandle({
+    get: result, color: "--la-v", enabled: indep,
+    set: (x, y) => {
+      const ab = L.apply(L.inv(L.fromCols(st.v, st.w)), [x, y]);
+      st.a = Math.max(-4, Math.min(4, ab[0]));
+      st.b = Math.max(-4, Math.min(4, ab[1]));
+      $("a").value = st.a;
+      $("b").value = st.b;
+    },
+  });
+
+  function draw(P) {
+    P.baseGrid();
+    if ($("show-grid").checked) P.grid(L.fromCols(st.v, st.w), { alpha: 0.32, axes: false });
+    if (!indep()) {
+      const d = L.norm(st.v) > 1e-9 ? st.v : st.w;
+      if (L.norm(d) > 1e-9) P.line(d, { color: "--la-grid", width: 3, alpha: 0.9 });
+      else P.dot([0, 0], { r: 6, color: "--la-grid" });
+    }
+    st.dots.forEach((p) => P.dot(p, { r: 2.2, color: "--la-v", alpha: 0.6 }));
+    const av = L.scale(st.v, st.a);
+    if ($("show-parts").checked) {
+      P.arrow(av, { color: "--la-i", width: 2, dash: [6, 5], alpha: 0.75, head: 9 });
+      P.arrow(L.scale(st.w, st.b), { from: av, color: "--la-j", width: 2, dash: [6, 5], alpha: 0.75, head: 9 });
+    }
+    P.arrow(st.v, { color: "--la-i", label: "v" });
+    P.arrow(st.w, { color: "--la-j", label: "w" });
+    P.arrow(result(), { color: "--la-v", width: 3.5 });
+  }
+
+  function update() {
+    $("a-out").textContent = L.fmt(st.a);
+    $("b-out").textContent = L.fmt(st.b);
+    const r = result();
+    $("eq").innerHTML =
+      '<span class="cvv">' + L.fmt(st.a) + '</span>·<span class="ci">' + L.vfmt(st.v) + "</span> + " +
+      '<span class="cvv">' + L.fmt(st.b) + '</span>·<span class="cj">' + L.vfmt(st.w) + "</span> = <b>" + L.vfmt(r) + "</b>" +
+      "<br>coordinates of the yellow arrow: <b>" + L.vfmt(r) + "</b> in the basis î, ĵ &nbsp;·&nbsp; " +
+      (indep() ? "<b>(" + L.fmt(st.a) + ", " + L.fmt(st.b) + ")</b> in the basis v, w" : "v, w is not a basis");
+    const s = $("status");
+    const zero = L.norm(st.v) < 1e-9 && L.norm(st.w) < 1e-9;
+    if (indep()) {
+      s.className = "status good";
+      s.textContent = "Independent: v and w point in different directions, so their span is the whole plane and every point has exactly one pair (a, b).";
+    } else if (zero) {
+      s.className = "status bad";
+      s.textContent = "Both vectors are zero: the span is just the origin.";
+    } else {
+      s.className = "status bad";
+      s.textContent = "Dependent: one is a multiple of the other, so the span collapses to a line. Points off the line are unreachable; points on it are reached by infinitely many pairs (a, b).";
+    }
+    P.render();
+  }
+
+  ["a", "b"].forEach((k) => $(k).addEventListener("input", () => { st[k] = +$(k).value; update(); }));
+  ["show-grid", "show-parts"].forEach((k) => $(k).addEventListener("change", update));
+  $("scatter").addEventListener("click", () => {
+    for (let i = 0; i < 400; i++) {
+      const a = Math.random() * 6 - 3, b = Math.random() * 6 - 3;
+      st.dots.push(L.add(L.scale(st.v, a), L.scale(st.w, b)));
+    }
+    if (st.dots.length > 2400) st.dots = st.dots.slice(-2400);
+    update();
+  });
+  $("clear").addEventListener("click", () => { st.dots = []; update(); });
+  $("lineup").addEventListener("click", () => {
+    if (L.norm(st.v) < 1e-9) st.v = [2, 1];
+    st.w = [L.snap(-1.5 * st.v[0]), L.snap(-1.5 * st.v[1])];
+    if (indep()) st.w = L.scale(st.v, -1.5);
+    st.dots = [];
+    update();
+  });
+  $("reset").addEventListener("click", () => {
+    Object.assign(st, { v: DEF.v.slice(), w: DEF.w.slice(), a: DEF.a, b: DEF.b, dots: [] });
+    $("a").value = st.a;
+    $("b").value = st.b;
+    update();
+  });
+  update();
+})();
+
+</script>
+<script src="../../../script.js"></script>
+</body>
+</html>
