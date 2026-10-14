@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shallow-Water Waves and Dam Breaks</title>
+<meta name="description" content="An interactive, ground-up derivation of the shallow-water equations: why long waves travel at the square root of g times depth, why big waves steepen into bores, and what happens when a dam breaks.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}]})"></script>
+<link rel="stylesheet" href="../../style.css">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<canvas id="mathCanvas" aria-hidden="true"></canvas>
+<div class="noise"></div>
+
+<header class="nav">
+  <a class="brand" href="../../index.html#top"><span>AN</span><b>Aijaz Nazir</b></a>
+  <nav>
+    <a href="../../index.html#research">Research</a>
+    <a href="../../index.html#projects">Projects</a>
+    <a href="../../index.html#notes">Notes</a>
+    <a class="active" href="../../explainers/">Explainers</a>
+    <a href="../../publications-and-teaching.html">Publications & Teaching</a>
+    <a href="../../index.html#about">About</a>
+    <a class="nav-cta" href="../../contact.html">Contact</a>
+  </nav>
+  <button class="menu" aria-label="Open menu">☰</button>
+</header>
+<div class="crumb"><a href="../">EXPLAINERS</a> / 03</div>
+
+<main class="article">
+  <p class="kicker">PDEs · Geophysical fluids</p>
+  <h1>Shallow water: waves, bores and the breaking dam</h1>
+  <p class="lede">One assumption, that the water is much shallower than the waves are long, turns the full 3D fluid equations into two short conservation laws. They explain why tsunamis cross oceans at airliner speed, why big waves pile up into bores, and exactly how a column of water collapses when a dam gives way.</p>
+
+  <h2>What "shallow" buys you</h2>
+  <p>Take a layer of water of depth \(h(x,t)\) over a flat bottom. "Shallow" means the horizontal scale of the motion, a wavelength \(L\), is much larger than the depth \(H\). Then fluid parcels move almost entirely sideways, vertical accelerations are tiny, and the pressure at height \(z\) is simply the weight of the water above it:</p>
+  $$p(x,z,t) = \rho g\,\big(h(x,t) - z\big).$$
+  <p>The horizontal push on a parcel is \(-\partial_x p/\rho = -g\,\partial_x h\). The \(z\) has dropped out: every parcel in a column feels the same horizontal force, set only by the slope of the surface. A column that starts moving together stays moving together, so the horizontal velocity \(u(x,t)\) is the same at every depth. Columns of water slide past each other like slabs. That is the whole idealization.</p>
+
+  <h2>Two conservation laws</h2>
+  <p><strong>Mass.</strong> Water flows past a point at volume rate \(hu\) per unit width. The water stored between \(x\) and \(x+dx\) can only change through the difference of what flows in and out:</p>
+  $$\partial_t h + \partial_x (hu) = 0.$$
+  <p><strong>Momentum.</strong> The momentum \(hu\) in a slab changes because momentum is carried in and out by the flow (\(hu\cdot u\)) and because pressure pushes on the slab's sides. Integrating the hydrostatic pressure over a column gives a total side force \(\int_0^h \rho g (h-z)\,dz = \tfrac12 \rho g h^2\) per unit width. So</p>
+  $$\partial_t (hu) + \partial_x\!\Big(hu^2 + \tfrac12 g h^2\Big) = 0.$$
+  <p>Deeper water pushes harder on its neighbours, and \(\tfrac12 g h^2\) is the shallow-water version of pressure.</p>
+
+  <h2>Small waves: speed \(\sqrt{gH}\)</h2>
+  <p>Perturb still water slightly: \(h = H + \eta\) with \(\eta \ll H\) and \(u\) small. Dropping products of small quantities leaves</p>
+  $$\partial_t \eta + H\,\partial_x u = 0, \qquad \partial_t u + g\,\partial_x \eta = 0.$$
+  <p>A raised surface pushes water away (second equation), and converging flow raises the surface (first). Eliminating \(u\) gives the wave equation \(\eta_{tt} = gH\,\eta_{xx}\), so every disturbance splits into two copies travelling left and right at</p>
+  $$c = \sqrt{gH}.$$
+  <p>Only gravity and depth set the speed, not wavelength. Over a 4000 m deep ocean, \(c\approx 200\) m/s, about 700 km/h, which is why tsunamis cross ocean basins in hours. In a 1 m deep channel, \(c \approx 3.1\) m/s.</p>
+
+  <h2>Big waves: the crest outruns the trough</h2>
+  <p>Without linearizing, write \(c=\sqrt{gh}\) for the <em>local</em> wave speed. A few lines of algebra turn the two equations into</p>
+  $$\big(\partial_t + (u \pm c)\,\partial_x\big)\,(u \pm 2c) = 0 .$$
+  <p>The quantities \(u + 2c\) and \(u - 2c\), the <em>Riemann invariants</em>, are carried unchanged along curves moving at \(u+c\) and \(u-c\). This is the same structure as Burgers' equation, now with two families of characteristics instead of one.</p>
+  <p>For a wave running into still water of depth \(H\), the invariant arriving from the still side fixes \(u = 2\big(c - \sqrt{gH}\big)\). Each part of the wave then moves at</p>
+  $$u + c = 3\sqrt{gh} - 2\sqrt{gH},$$
+  <p>which is faster where the water is deeper. The crest catches up with the front, the front steepens, and in finite time it becomes a near-vertical step: a <em>bore</em>, the shallow-water version of a shock.</p>
+  <p>The hump scenario in the simulation measures the crest speed. While the wave is smooth it tracks \(3\sqrt{gh}-2\sqrt{gH}\), not \(\sqrt{gH}\), even for modest heights. Once the front has broken, the crest rides behind a bore that dissipates energy, so the crest slowly loses height and falls below the smooth-wave prediction.</p>
+
+  <div class="panel" id="swe-panel">
+    <canvas id="cv-h" aria-label="Water surface"></canvas>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--accent)"></span>water surface, numerical</span>
+      <span><span class="sw dash"></span><span id="lg-theory">exact solution</span></span>
+    </div>
+
+    <div class="controls">
+      <div class="control">
+        <label for="scn">Scenario</label>
+        <select id="scn">
+          <option value="dry">Dam break onto a dry bed</option>
+          <option value="wet">Dam break into still water</option>
+          <option value="bump">Released hump on still water</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="par"><span id="par-name">Downstream depth</span> <output id="par-out"></output></label>
+        <input type="range" id="par" min="0" max="100" step="1" value="30">
+      </div>
+      <div class="control">
+        <label for="N">Grid cells <output id="N-out"></output></label>
+        <input type="range" id="N" min="100" max="1000" step="50" value="400">
+      </div>
+      <div class="control">
+        <label for="speed">Playback speed <output id="speed-out"></output></label>
+        <input type="range" id="speed" min="0.1" max="2" step="0.1" value="0.5">
+      </div>
+    </div>
+    <div class="buttons">
+      <button class="primary" id="play">Play</button>
+      <button id="reset">Reset</button>
+      <label class="check"><input type="checkbox" id="theory" checked> Show theory</label>
+    </div>
+    <div class="readouts" id="readouts"></div>
+
+    <div class="two-col">
+      <div>
+        <p class="sub-title">Velocity <span class="m">u(x)</span>, m/s</p>
+        <div><canvas id="cv-u" aria-label="Velocity"></canvas></div>
+      </div>
+      <div>
+        <p class="sub-title">Froude number <span class="m">Fr = u/√(gh)</span></p>
+        <div><canvas id="cv-fr" aria-label="Froude number"></canvas></div>
+      </div>
+    </div>
+
+    <div class="try">
+      <strong>Things to try</strong>
+      <ul>
+        <li>Dry-bed dam break: the depth at the dam settles at 4/9 of the reservoir depth and the Froude number there sits at exactly 1.</li>
+        <li>Into still water: raise the downstream depth past about 0.28 m (14% of the reservoir) and the flow at the dam stops being critical.</li>
+        <li>Hump: at 0.05 m the two halves stay close to the linear prediction. At 0.6 m the crests run well ahead of it, the fronts steepen into bores, and the measured crest speed then drops below the smooth-wave formula.</li>
+        <li>Change the grid resolution. A bore smears across more cells on a coarse grid but still moves at the right speed. The thin tip of a dry-bed flood lags the exact front on a coarse grid and closes in as you refine.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>The dam break</h2>
+  <p>Hold water of depth \(h_0\) behind a wall at \(x=0\), with a dry bed beyond it, then remove the wall at \(t=0\). Nothing in the problem has a length scale, so the solution can only depend on \(x/t\). The reservoir is still, so the invariant \(u + 2c = 2c_0\) (with \(c_0 = \sqrt{g h_0}\)) is carried into the flow from the left. The other family of characteristics fans out from the dam, \(x/t = u - c\). Solving those two relations gives Ritter's 1892 solution:</p>
+  $$c = \tfrac13\Big(2c_0 - \frac{x}{t}\Big), \qquad u = \tfrac23\Big(c_0 + \frac{x}{t}\Big), \qquad -c_0 \le \frac{x}{t} \le 2c_0 .$$
+  <p>The surface is a parabola that grows longer in time. The disturbance travels back into the reservoir at \(c_0\), and the tip of the flood advances at \(2c_0\), twice the still-water wave speed. At the dam site \(x=0\) the formulas give \(u = c = \tfrac23 c_0\), so the depth there is \(\tfrac49 h_0\) and the Froude number \(u/c\) is exactly 1, independent of \(h_0\).</p>
+
+  <h3>Critical flow and what the Froude number means</h3>
+  <p>The Froude number \(\mathrm{Fr} = u/\sqrt{gh}\) compares the flow speed with the speed of surface waves. When \(\mathrm{Fr}&lt;1\) (subcritical), waves can travel upstream against the current. When \(\mathrm{Fr}&gt;1\) (supercritical), the current sweeps every wave downstream and information cannot propagate back. At the dam the flow is exactly critical: it chokes, and it sets the outflow rate the reservoir can deliver. Hydraulic engineers use the same principle to measure discharge over weirs.</p>
+
+  <h3>Into still water: a bore appears</h3>
+  <p>If the downstream bed already holds water of depth \(h_R\), the flood front can no longer thin out to zero. Instead a bore forms and runs into the still water, with an intermediate region of uniform depth \(h_*\) and velocity \(u_*\) between it and the rarefaction fan. The bore's speed \(S\) follows from conserving mass and momentum across the jump, exactly as Rankine–Hugoniot did for Burgers:</p>
+  $$S\,(h_* - h_R) = h_* u_*, \qquad S\,h_* u_* = h_* u_*^2 + \tfrac12 g\,(h_*^2 - h_R^2).$$
+  <p>Together with the invariant \(u_* + 2\sqrt{g h_*} = 2c_0\) from the fan, these fix \(h_*\), \(u_*\) and \(S\); the dashed curve in the simulation solves them exactly. For \(h_R/h_0 \lesssim 0.138\) the fan still straddles the dam and the flow there stays critical. Above that ratio, the backwater from the bore makes it subcritical.</p>
+  <p>Energy is not conserved across a bore. Mass and momentum balance, but the mechanical energy flux does not, and the difference goes into turbulence in the breaking front. Like the Burgers shock, this dissipation is set by the jump itself, not by the viscosity of water.</p>
+
+  <h2>Beyond one layer</h2>
+  <p>The ocean is not one slab but a stack of layers of slightly different density. With two layers, the interface between them carries its own waves, driven by the reduced gravity \(g' = g\,\Delta\rho/\rho\). For long waves under a rigid lid they travel at</p>
+  $$c_{\text{int}} = \sqrt{\frac{g' H_1 H_2}{H_1 + H_2}},$$
+  <p>far slower than surface waves, because \(\Delta\rho/\rho\) is only about \(10^{-3}\) in the ocean. Stacked-layer equations of this kind are the backbone of layered ocean models such as MOM6 run in isopycnal coordinates, and the eddies those models cannot resolve are what subgrid closures have to represent.</p>
+
+  <div class="note">
+    <strong>About the numerics.</strong> Finite volumes on a flat bed with transmissive boundaries: MUSCL reconstruction of depth and velocity with a minmod limiter, the HLL approximate Riemann flux (with the dry-front speed \(u + 2\sqrt{gh}\) where a cell is dry), second-order SSP Runge–Kutta, and a CFL number of 0.4. Cells shallower than \(10^{-6}\) m are treated as dry. The very tip of a dry-bed flood, where \(h \to 0\), is where any grid is least accurate, so the readout compares the point where the depth falls to 1 cm instead. The dam-break overlays come from the exact Riemann solver, so their agreement with the simulation is a genuine check, not a fit. The bump overlay is the linear solution \(\eta(x,t) = \tfrac12\eta_0(x - ct) + \tfrac12\eta_0(x + ct)\).
+  </div>
+
+  <a class="next" href="../burgers/"><span><span>NEXT EXPLAINER</span><b>Burgers' Equation &amp; Shocks</b></span><i>→</i></a>
+</main>
+
+<footer><span>© 2026 Aijaz Nazir</span><span>Mathematics · Computing · Learning</span></footer>
+<script src="../assets/plot.js"></script>
+<script src="swe.js"></script>
+<script>
+(function () {
+  "use strict";
+  const { Fig, css } = Plot;
+  const { g, riemann, Solver } = SWE;
+  const $ = (id) => document.getElementById(id);
+
+  const X0 = 0, X1 = 100, DAM = 50, H0 = 2, HBUMP = 1, SIG = 4;
+
+  /* ---------- Scenarios ---------- */
+  const SCN = {
+    dry: {
+      tmax: 5, param: null,
+      hlim: [0, 2.4],
+      theory: "exact solution (Ritter, 1892)",
+    },
+    wet: {
+      tmax: 5,
+      param: { name: "Downstream depth", min: 0.02, max: 1.6, def: 0.5, fmt: (v) => v.toFixed(2) + " m" },
+      hlim: [0, 2.4],
+      theory: "exact solution (Riemann problem)",
+    },
+    bump: {
+      tmax: 12,
+      param: { name: "Hump height", min: 0.02, max: 0.8, def: 0.1, fmt: (v) => v.toFixed(2) + " m" },
+      hlim: [0, 2.1],
+      theory: "linear theory, speed √(gH)",
+    },
+  };
+
+  let scn, P, sv, exact, playing = false, last = null, crestHist = [];
+
+  function paramValue() {
+    if (!scn.param) return 0;
+    const s = +$("par").value / 100;
+    return scn.param.min + s * (scn.param.max - scn.param.min);
+  }
+
+  function setupParamControl() {
+    const c = $("par").closest(".control");
+    if (!scn.param) { c.style.visibility = "hidden"; return; }
+    c.style.visibility = "";
+    $("par-name").textContent = scn.param.name;
+  }
+
+  function reset() {
+    scn = SCN[$("scn").value];
+    setupParamControl();
+    P = paramValue();
+    const N = +$("N").value;
+    sv = new Solver(N, X0, X1);
+    for (let i = 0; i < N; i++) {
+      // cell averages from 8 sub-samples
+      let s = 0;
+      for (let k = 0; k < 8; k++) s += h0(X0 + (i + (k + 0.5) / 8) * sv.dx);
+      sv.h[i] = s / 8;
+      sv.q[i] = 0;
+    }
+    exact = $("scn").value === "bump" ? null : riemann(H0, 0, $("scn").value === "dry" ? 0 : P, 0);
+    crestHist = [];
+    hFig.o.ylim = scn.hlim;
+    uFig.o.ylim = uLimits();
+    $("lg-theory").textContent = scn.theory;
+    labels();
+    readouts();
+    drawAll();
+  }
+
+  function h0(x) {
+    const id = $("scn").value;
+    if (id === "dry") return x < DAM ? H0 : 0;
+    if (id === "wet") return x < DAM ? H0 : P;
+    return HBUMP + P * Math.exp(-(((x - DAM) / SIG) ** 2));
+  }
+
+  function uLimits() {
+    const id = $("scn").value;
+    if (id === "dry") return [-0.5, 2 * Math.sqrt(g * H0) + 0.6];
+    if (id === "wet") { const r = riemann(H0, 0, P, 0); return [-0.4, Math.max(1, r.us * 1.35)]; }
+    const a = Math.max(0.15, 1.1 * Math.sqrt(g * HBUMP) * (P / HBUMP));
+    return [-a, a];
+  }
+
+  /* ---------- Theory curves ---------- */
+  function theoryCurve() {
+    const t = sv.t, xs = [], hs = [], us = [];
+    const M = 800;
+    if (exact) {
+      for (let k = 0; k <= M; k++) {
+        const x = X0 + (k / M) * (X1 - X0);
+        let hh, uu;
+        if (t < 1e-9) { hh = h0(x); uu = 0; }
+        else [hh, uu] = exact.sample((x - DAM) / t);
+        xs.push(x); hs.push(hh); us.push(hh > 1e-6 ? uu : NaN);
+      }
+    } else {
+      const c = Math.sqrt(g * HBUMP);
+      const e = (x) => P * Math.exp(-(((x - DAM) / SIG) ** 2));
+      for (let k = 0; k <= M; k++) {
+        const x = X0 + (k / M) * (X1 - X0);
+        const a = e(x - c * t), b = e(x + c * t);
+        xs.push(x); hs.push(HBUMP + 0.5 * (a + b)); us.push((c / HBUMP) * 0.5 * (a - b));
+      }
+    }
+    return { xs, hs, us };
+  }
+
+  /* ---------- Figures ---------- */
+  const hFig = new Fig($("cv-h"), { xlim: [X0, X1], aspect: 0.42, maxH: 380, xlabel: "x (m)", ylabel: "depth h (m)" });
+  const uFig = new Fig($("cv-u"), { xlim: [X0, X1], aspect: 0.7, minH: 190, maxH: 280, xlabel: "x (m)", pad: { l: 44, r: 10, t: 10, b: 36 } });
+  const frFig = new Fig($("cv-fr"), { xlim: [X0, X1], ylim: [-1.6, 3.2], aspect: 0.7, minH: 190, maxH: 280, xlabel: "x (m)", pad: { l: 44, r: 10, t: 10, b: 36 } });
+
+  function cellSeries(fn) {
+    const xs = [], ys = [];
+    for (let i = 0; i < sv.N; i++) { xs.push(sv.x(i)); ys.push(fn(i)); }
+    return { xs, ys };
+  }
+
+  function drawH() {
+    const F = hFig, ctx = F.ctx;
+    F.clear();
+    F.axes();
+    F.clip();
+    // water body
+    ctx.save();
+    ctx.fillStyle = css("--accent3");
+    ctx.globalAlpha = 0.16;
+    ctx.beginPath();
+    ctx.moveTo(F.X(X0), F.Y(0));
+    for (let i = 0; i < sv.N; i++) ctx.lineTo(F.X(sv.x(i)), F.Y(sv.h[i]));
+    ctx.lineTo(F.X(X1), F.Y(0));
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+    if ($("scn").value !== "bump" && sv.t < 1e-9) {
+      F.vline(DAM, { color: css("--muted"), width: 3 });
+    }
+    if ($("theory").checked) {
+      const th = theoryCurve();
+      F.line(th.xs, th.hs, { color: css("--muted"), width: 1.6, dash: [5, 4] });
+    }
+    const s = cellSeries((i) => (sv.h[i] > 1e-4 ? sv.h[i] : NaN));
+    F.line(s.xs, s.ys, { color: css("--accent"), width: 2.4 });
+    if ($("scn").value !== "bump") F.text("dam", DAM, F.o.ylim[1], { align: "center", dy: 10, font: "10px 'JetBrains Mono', monospace" });
+    F.unclip();
+  }
+
+  function drawU() {
+    const F = uFig;
+    F.clear();
+    F.axes();
+    F.clip();
+    F.hline(0, { color: css("--line"), width: 1 });
+    if ($("theory").checked) {
+      const th = theoryCurve();
+      F.line(th.xs, th.us, { color: css("--muted"), width: 1.4, dash: [5, 4] });
+    }
+    const s = cellSeries((i) => (sv.h[i] > 1e-3 ? sv.u(i) : NaN));
+    F.line(s.xs, s.ys, { color: css("--accent"), width: 2 });
+    F.unclip();
+  }
+
+  function drawFr() {
+    const F = frFig;
+    F.clear();
+    F.axes();
+    F.clip();
+    const a2 = css("--accent2");
+    F.hline(1, { color: a2, width: 1.2, dash: [4, 4] });
+    F.hline(-1, { color: a2, width: 1.2, dash: [4, 4] });
+    F.text("supercritical", X1, 1, { align: "right", dx: -4, dy: -9, color: a2, font: "10px 'JetBrains Mono', monospace" });
+    F.text("subcritical", X1, 1, { align: "right", dx: -4, dy: 9, color: css("--muted"), font: "10px 'JetBrains Mono', monospace" });
+    const s = cellSeries((i) => (sv.h[i] > 1e-3 ? sv.u(i) / Math.sqrt(g * sv.h[i]) : NaN));
+    F.line(s.xs, s.ys, { color: css("--accent3"), width: 2 });
+    F.unclip();
+  }
+
+  function drawAll() { drawH(); drawU(); drawFr(); }
+  hFig.redraw = drawH;
+  uFig.redraw = drawU;
+  frFig.redraw = drawFr;
+
+  /* ---------- Readouts ---------- */
+  function cellAt(x) { return Math.min(sv.N - 1, Math.max(0, Math.floor((x - X0) / sv.dx))); }
+
+  function crest() {
+    // right-going crest: max h for x > DAM, refined by a parabola through 3 cells
+    let best = cellAt(DAM), m = -Infinity;
+    for (let i = cellAt(DAM); i < sv.N; i++) if (sv.h[i] > m) { m = sv.h[i]; best = i; }
+    let x = sv.x(best);
+    if (best > 0 && best < sv.N - 1) {
+      const a = sv.h[best - 1], b = sv.h[best], c = sv.h[best + 1];
+      const d = a - 2 * b + c;
+      if (d < 0) x += 0.5 * sv.dx * (a - c) / d;
+    }
+    return { x, h: m };
+  }
+
+  function readouts() {
+    const id = $("scn").value, t = sv.t, el = $("readouts");
+    const items = [["t", t.toFixed(2) + " s"]];
+    if (id === "dry" || id === "wet") {
+      const i = cellAt(DAM), h = sv.h[i], u = sv.u(i);
+      const fr = h > 1e-3 ? u / Math.sqrt(g * h) : 0;
+      const r = exact;
+      const frTh = r.dry ? 1 : (r.us - Math.sqrt(g * r.hs) > 0 ? 1 : r.us / Math.sqrt(g * r.hs));
+      const hTh = r.dry ? (4 / 9) * H0 : (r.us - Math.sqrt(g * r.hs) > 0 ? (4 / 9) * H0 : r.hs);
+      items.push(["depth at dam", t > 0 ? h.toFixed(3) + " m (theory " + hTh.toFixed(3) + ")" : "–"]);
+      items.push(["Fr at dam", t > 0 ? fr.toFixed(3) + " (theory " + frTh.toFixed(3) + ")" : "–"]);
+      // front / bore position
+      let xf = DAM;
+      if (r.dry) { for (let k = sv.N - 1; k >= 0; k--) if (sv.h[k] > 0.01) { xf = sv.x(k); break; } }
+      else {
+        const thr = 0.5 * (r.hs + P);
+        for (let k = sv.N - 1; k >= 0; k--) if (sv.h[k] > thr) { xf = sv.x(k); break; }
+      }
+      // dry bed: compare where the depth falls to 1 cm, since the h -> 0 tip is a limit no grid resolves
+      const xTh = DAM + (r.dry ? r.front - Math.sqrt(9 * g * 0.01) : r.SR) * t;
+      items.push([r.dry ? "front (h = 1 cm)" : "bore", t > 0 ? xf.toFixed(1) + " m (theory " + Math.min(X1, xTh).toFixed(1) + ")" : "–"]);
+    } else {
+      const c0 = Math.sqrt(g * HBUMP);
+      const cr = crest();
+      crestHist.push([t, cr.x]);
+      while (crestHist.length > 2 && t - crestHist[0][0] > 0.6) crestHist.shift();
+      let sp = NaN;
+      if (crestHist.length > 2 && t > 2.5) sp = (crestHist[crestHist.length - 1][1] - crestHist[0][1]) / (t - crestHist[0][0]);
+      const nl = 3 * Math.sqrt(g * cr.h) - 2 * c0;
+      items.push(["crest height", cr.h.toFixed(3) + " m"]);
+      items.push(["crest speed", isFinite(sp) ? sp.toFixed(2) + " m/s" : "–"]);
+      items.push(["linear √(gH)", c0.toFixed(2) + " m/s"]);
+      items.push(["nonlinear 3√(gh)−2√(gH)", nl.toFixed(2) + " m/s"]);
+    }
+    el.innerHTML = items.map(([k, v]) => "<span>" + k + " = <b>" + v + "</b></span>").join("");
+  }
+
+  /* ---------- Loop ---------- */
+  function frame(ts) {
+    if (!playing) return;
+    if (last == null) last = ts;
+    const dtWall = Math.min(0.05, (ts - last) / 1000);
+    last = ts;
+    sv.advance(dtWall * +$("speed").value, scn.tmax);
+    readouts();
+    drawAll();
+    if (sv.t >= scn.tmax - 1e-9) { setPlaying(false); return; }
+    requestAnimationFrame(frame);
+  }
+  function setPlaying(p) {
+    playing = p;
+    $("play").textContent = p ? "Pause" : sv.t >= scn.tmax - 1e-9 ? "Replay" : "Play";
+    if (p) { last = null; requestAnimationFrame(frame); }
+  }
+
+  $("play").addEventListener("click", () => {
+    if (!playing && sv.t >= scn.tmax - 1e-9) reset();
+    setPlaying(!playing);
+  });
+  $("reset").addEventListener("click", () => { setPlaying(false); reset(); });
+  $("theory").addEventListener("change", drawAll);
+
+  function labels() {
+    if (scn && scn.param) $("par-out").textContent = scn.param.fmt(paramValue());
+    $("N-out").textContent = $("N").value;
+    $("speed-out").textContent = (+$("speed").value).toFixed(1) + "×";
+  }
+  $("scn").addEventListener("change", () => {
+    setPlaying(false);
+    const p = SCN[$("scn").value].param;
+    if (p) $("par").value = Math.round(((p.def - p.min) / (p.max - p.min)) * 100);
+    reset();
+  });
+  ["par", "N"].forEach((id) => $(id).addEventListener("input", () => { setPlaying(false); reset(); }));
+  $("speed").addEventListener("input", labels);
+
+  reset();
+})();
+</script>
+<script src="../../script.js"></script>
+</body>
+</html>
