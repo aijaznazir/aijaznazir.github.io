@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Linear Algebra, as Geometry</title>
-<meta name="description" content="A six-chapter, picture-first introduction to linear algebra: vectors and span, matrices as transformations, composition, determinants, inverses and null spaces, and eigenvectors, each with an interactive plane.">
+<meta name="description" content="A seven-chapter, picture-first introduction to linear algebra: vectors and span, matrices as transformations, composition, determinants, inverses, range and kernel with the four fundamental subspaces, and eigenvectors, each with an interactive visualizer.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -36,7 +36,7 @@
 <div class="crumb"><a href="../">EXPLAINERS</a> / 04</div>
 
 <main class="article">
-  <p class="kicker">Linear algebra · A six-chapter series</p>
+  <p class="kicker">Linear algebra · A seven-chapter series</p>
   <h1>Linear algebra, as geometry</h1>
   <p class="lede">Most courses begin with rules for manipulating arrays of numbers. This series begins with pictures: arrows, grids, and the motions of the plane that matrices describe. Each rule then becomes something you can see, and drag.</p>
 
@@ -86,8 +86,13 @@
       <div><h3>Inverses, column space and null space</h3><p>Solving \(A\vec x = \vec b\): one answer, none, or a whole line of them, and how to tell which.</p></div>
       <span class="key">\(\vec x = A^{-1}\vec b\)</span>
     </a>
-    <a href="eigen/">
+    <a href="subspaces/">
       <span class="n">06</span>
+      <div><h3>Range, kernel and the four subspaces</h3><p>What a transformation can reach and what it destroys: column space, null space, rank–nullity, one-to-one and onto, and the row and left null spaces. Explore 2×2 to 3×4 matrices in 2D and 3D.</p></div>
+      <span class="key">\(\operatorname{rank} + \operatorname{nullity} = n\)</span>
+    </a>
+    <a href="eigen/">
+      <span class="n">07</span>
       <div><h3>Eigenvectors and eigenvalues</h3><p>The directions a transformation keeps, how to find them, and why repeated application lines up with them.</p></div>
       <span class="key">\(A\vec v = \lambda\vec v\)</span>
     </a>

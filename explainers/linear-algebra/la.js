@@ -149,6 +149,7 @@
       return true;
     }
 
+    setRange(r) { this.o.range = r; this.s = Math.min(this.w, this.h) / (2 * r); }
     X(x) { return this.w / 2 + x * this.s; }
     Y(y) { return this.h / 2 - y * this.s; }
     get halfW() { return this.w / 2 / this.s; }
@@ -461,6 +462,250 @@
       "</b><b" + (cls ? ' class="' + cls + '"' : "") + ">" + fmt(v[1]) + "</b></span></span>";
   }
 
+  /* ---------- exact rational arithmetic and row reduction (for small integer/decimal matrices) ---------- */
+  const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a || 1; };
+  class Q {
+    constructor(n, d) {
+      if (d === undefined) d = 1;
+      if (d < 0) { n = -n; d = -d; }
+      const g = gcd(n, d);
+      this.n = n / g;
+      this.d = d / g;
+      if (this.n === 0) this.d = 1;
+    }
+    static of(x) {
+      if (x instanceof Q) return x;
+      if (typeof x === "string") return Q.parse(x);
+      if (Number.isInteger(x)) return new Q(x, 1);
+      let d = 1;
+      while (!Number.isInteger(+(x * d).toFixed(9)) && d < 1e6) d *= 10;
+      return new Q(Math.round(x * d), d);
+    }
+    /* "3", "-0.5", "1/3", "−2/4"; returns null if unreadable */
+    static parse(s) {
+      s = String(s).trim().replace(/−/g, "-");
+      if (s === "" || s === "-") return new Q(0);
+      const m = s.match(/^(-?\d*\.?\d+)\s*\/\s*(-?\d*\.?\d+)$/);
+      if (m) {
+        const a = Q.of(+m[1]), b = Q.of(+m[2]);
+        return b.n === 0 ? null : a.div(b);
+      }
+      const v = Number(s);
+      return isFinite(v) ? Q.of(v) : null;
+    }
+    add(o) { return new Q(this.n * o.d + o.n * this.d, this.d * o.d); }
+    sub(o) { return new Q(this.n * o.d - o.n * this.d, this.d * o.d); }
+    mul(o) { return new Q(this.n * o.n, this.d * o.d); }
+    div(o) { return new Q(this.n * o.d, this.d * o.n); }
+    neg() { return new Q(-this.n, this.d); }
+    isZero() { return this.n === 0; }
+    valueOf() { return this.n / this.d; }
+    toString() { return (this.n < 0 ? "−" : "") + Math.abs(this.n) + (this.d === 1 ? "" : "/" + this.d); }
+  }
+  /* Reduced row echelon form of a matrix of Q (array of rows). */
+  function rref(M) {
+    const R = M.map((r) => r.slice());
+    const m = R.length, n = m ? R[0].length : 0, pivots = [];
+    let row = 0;
+    for (let c = 0; c < n && row < m; c++) {
+      let p = -1;
+      for (let i = row; i < m; i++) if (!R[i][c].isZero()) { p = i; break; }
+      if (p < 0) continue;
+      [R[row], R[p]] = [R[p], R[row]];
+      const lead = R[row][c];
+      R[row] = R[row].map((x) => x.div(lead));
+      for (let i = 0; i < m; i++) {
+        if (i === row || R[i][c].isZero()) continue;
+        const f = R[i][c];
+        R[i] = R[i].map((x, j) => x.sub(f.mul(R[row][j])));
+      }
+      pivots.push(c);
+      row++;
+    }
+    return { R, pivots };
+  }
+  /* Basis of the null space, one vector per free variable (same basis as MATLAB's null(A,'r')). */
+  function nullBasis(M) {
+    const { R, pivots } = rref(M);
+    const n = M[0].length;
+    const free = [];
+    for (let j = 0; j < n; j++) if (!pivots.includes(j)) free.push(j);
+    return free.map((f) => {
+      const v = [];
+      for (let j = 0; j < n; j++) v.push(new Q(j === f ? 1 : 0));
+      pivots.forEach((pc, i) => { v[pc] = R[i][f].neg(); });
+      return v;
+    });
+  }
+  const transpose = (M) => M[0].map((_, j) => M.map((r) => r[j]));
+
+  /* ---------- small n-vector helpers (plain numbers) ---------- */
+  const vdot = (a, b) => a.reduce((s, x, i) => s + x * b[i], 0);
+  const vnorm = (a) => Math.sqrt(vdot(a, a));
+  const vadd = (a, b) => a.map((x, i) => x + b[i]);
+  const vsub = (a, b) => a.map((x, i) => x - b[i]);
+  const vscale = (a, s) => a.map((x) => x * s);
+  /* Orthonormal basis (Gram–Schmidt) for the span of the given vectors. */
+  function orthonormal(vs) {
+    const out = [];
+    for (const v of vs) {
+      let w = v.slice();
+      for (const q of out) w = vsub(w, vscale(q, vdot(w, q)));
+      const n = vnorm(w);
+      if (n > 1e-9) out.push(vscale(w, 1 / n));
+    }
+    return out;
+  }
+  /* Orthogonal projection of x onto the span of an orthonormal set. */
+  const projectOn = (x, qs) => qs.reduce((acc, q) => vadd(acc, vscale(q, vdot(x, q))), x.map(() => 0));
+
+  /* ---------- View3: a rotatable 3D view (drag to turn) ---------- */
+  class View3 {
+    constructor(canvas, o) {
+      this.c = canvas;
+      this.ctx = canvas.getContext("2d");
+      this.o = Object.assign({ range: 3, aspect: 0.95, minH: 240, maxH: 440, maxVH: 0.5, draw: null }, o || {});
+      this.yaw = -0.62;
+      this.pitch = 0.42;
+      this.w = 0;
+      this.h = 0;
+      this.drag = null;
+      canvas.style.touchAction = "none";
+      canvas.style.cursor = "grab";
+      this.resize();
+      const again = () => { if (this.resize()) this.render(); };
+      if ("ResizeObserver" in window) new ResizeObserver(again).observe(canvas.parentElement);
+      window.addEventListener("resize", again);
+      canvas.addEventListener("pointerdown", (e) => {
+        this.drag = [e.clientX, e.clientY];
+        try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+        canvas.style.cursor = "grabbing";
+        e.preventDefault();
+      });
+      canvas.addEventListener("pointermove", (e) => {
+        if (!this.drag) return;
+        const dx = e.clientX - this.drag[0], dy = e.clientY - this.drag[1];
+        this.drag = [e.clientX, e.clientY];
+        this.yaw -= dx * 0.01;
+        this.pitch = Math.max(-1.45, Math.min(1.45, this.pitch + dy * 0.01));
+        this.render();
+      });
+      const up = () => { this.drag = null; canvas.style.cursor = "grab"; };
+      canvas.addEventListener("pointerup", up);
+      canvas.addEventListener("pointercancel", up);
+    }
+    resize() {
+      const w = this.c.parentElement.clientWidth;
+      const h = Math.round(Math.min(this.o.maxH, window.innerHeight * this.o.maxVH, Math.max(this.o.minH, w * this.o.aspect)));
+      if (!w || (w === this.w && h === this.h)) return false;
+      const dpr = window.devicePixelRatio || 1;
+      this.w = w; this.h = h;
+      this.c.width = Math.round(w * dpr);
+      this.c.height = Math.round(h * dpr);
+      this.c.style.height = h + "px";
+      this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      this.setRange(this.o.range);
+      return true;
+    }
+    setRange(r) { this.o.range = r; this.s = Math.min(this.w, this.h) / (2.3 * r); }
+    /* world point -> [screen x, screen y, depth] (z is up, camera tilted down by pitch) */
+    P(p) {
+      const cy = Math.cos(this.yaw), sy = Math.sin(this.yaw), cp = Math.cos(this.pitch), sp = Math.sin(this.pitch);
+      const x1 = cy * p[0] - sy * p[1], y1 = sy * p[0] + cy * p[1], z1 = p[2];
+      return [this.w / 2 + x1 * this.s, this.h / 2 - (z1 * cp + y1 * sp) * this.s, y1 * cp - z1 * sp];
+    }
+    col(c) { return c && c.startsWith("--") ? css(c) : c; }
+    render() {
+      this.ctx.clearRect(0, 0, this.w, this.h);
+      if (this.o.draw) this.o.draw(this);
+    }
+    seg(a, b, o) {
+      o = Object.assign({ color: "--fg", width: 1.5, alpha: 1, dash: null }, o || {});
+      const A = this.P(a), B = this.P(b), ctx = this.ctx;
+      ctx.save();
+      ctx.globalAlpha = o.alpha;
+      ctx.strokeStyle = this.col(o.color);
+      ctx.lineWidth = o.width;
+      ctx.lineCap = "round";
+      if (o.dash) ctx.setLineDash(o.dash);
+      ctx.beginPath(); ctx.moveTo(A[0], A[1]); ctx.lineTo(B[0], B[1]); ctx.stroke();
+      ctx.restore();
+    }
+    axes() {
+      const R = this.o.range, ctx = this.ctx;
+      const g = Math.floor(R);
+      for (let k = -g; k <= g; k++) {
+        this.seg([k, -g, 0], [k, g, 0], { color: "--la-axis", width: 1, alpha: 0.45 });
+        this.seg([-g, k, 0], [g, k, 0], { color: "--la-axis", width: 1, alpha: 0.45 });
+      }
+      [[1, 0, 0, "x"], [0, 1, 0, "y"], [0, 0, 1, "z"]].forEach(([a, b, c, name]) => {
+        this.seg([-a * R, -b * R, -c * R], [a * R, b * R, c * R], { color: "--muted", width: 1.2, alpha: 0.8 });
+        const t = this.P([a * R * 1.06, b * R * 1.06, c * R * 1.06]);
+        ctx.save();
+        ctx.fillStyle = this.col("--muted");
+        ctx.font = "italic 13px 'Source Serif 4', Georgia, serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(name, t[0], t[1]);
+        ctx.restore();
+      });
+    }
+    line(d, o) {
+      const u = unitN(d), L = this.o.range * 1.35;
+      this.seg(vscale(u, -L), vscale(u, L), Object.assign({ width: 3 }, o || {}));
+    }
+    /* plane through the origin spanned by u, w (any two independent vectors) */
+    plane(u, w, o) {
+      o = Object.assign({ color: "--fg", alpha: 0.16 }, o || {});
+      const [a, b] = orthonormal([u, w]);
+      if (!b) return;
+      const L = this.o.range * 0.92, ctx = this.ctx;
+      const pt = (s, t) => this.P(vadd(vscale(a, s), vscale(b, t)));
+      ctx.save();
+      ctx.fillStyle = this.col(o.color);
+      ctx.globalAlpha = o.alpha;
+      ctx.beginPath();
+      [[-L, -L], [L, -L], [L, L], [-L, L]].forEach(([s, t], i) => { const p = pt(s, t); i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); });
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+      for (let k = -2; k <= 2; k++) {
+        const s = (k * L) / 2;
+        this.seg(vadd(vscale(a, s), vscale(b, -L)), vadd(vscale(a, s), vscale(b, L)), { color: o.color, width: 1, alpha: 0.45 });
+        this.seg(vadd(vscale(a, -L), vscale(b, s)), vadd(vscale(a, L), vscale(b, s)), { color: o.color, width: 1, alpha: 0.45 });
+      }
+    }
+    arrow(v, o) {
+      o = Object.assign({ from: [0, 0, 0], color: "--fg", width: 3, head: 11, alpha: 1, dash: null, label: null }, o || {});
+      const A = this.P(o.from), B = this.P(vadd(o.from, v)), ctx = this.ctx, c = this.col(o.color);
+      const L = Math.hypot(B[0] - A[0], B[1] - A[1]);
+      ctx.save();
+      ctx.globalAlpha = o.alpha;
+      ctx.strokeStyle = ctx.fillStyle = c;
+      ctx.lineWidth = o.width;
+      ctx.lineCap = "round";
+      if (L < 1.5) { ctx.beginPath(); ctx.arc(A[0], A[1], o.width + 1.5, 0, 2 * Math.PI); ctx.fill(); ctx.restore(); return; }
+      const ux = (B[0] - A[0]) / L, uy = (B[1] - A[1]) / L, hd = Math.min(o.head, L * 0.6), hw = hd * 0.55;
+      const bx = B[0] - ux * hd, by = B[1] - uy * hd;
+      if (o.dash) ctx.setLineDash(o.dash);
+      ctx.beginPath(); ctx.moveTo(A[0], A[1]); ctx.lineTo(bx, by); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(B[0], B[1]); ctx.lineTo(bx - uy * hw, by + ux * hw); ctx.lineTo(bx + uy * hw, by - ux * hw); ctx.closePath(); ctx.fill();
+      ctx.restore();
+      if (o.label) this.textPx(o.label, B[0] + ux * 15, B[1] + uy * 15, { color: o.color, font: "600 13px 'JetBrains Mono', monospace", align: "center" });
+    }
+    dot(p, o) {
+      o = Object.assign({ r: 4, color: "--fg", alpha: 1 }, o || {});
+      const P = this.P(p), ctx = this.ctx;
+      ctx.save(); ctx.globalAlpha = o.alpha; ctx.fillStyle = this.col(o.color);
+      ctx.beginPath(); ctx.arc(P[0], P[1], o.r, 0, 2 * Math.PI); ctx.fill(); ctx.restore();
+    }
+    textPx(str, x, y, o) { Plane.prototype.textPx.call(this, str, x, y, o); }
+    text(str, p, o) { const P = this.P(p); this.textPx(str, P[0] + ((o && o.dx) || 0), P[1] + ((o && o.dy) || 0), o); }
+    hud(str, o) { this.textPx(str, 12, 16, Object.assign({ color: "--muted", font: "11px 'JetBrains Mono', monospace" }, o || {})); }
+  }
+  const unitN = (v) => { const n = vnorm(v); return n < 1e-12 ? v.map(() => 0) : vscale(v, 1 / n); };
+
   const PRESETS = {
     identity: [1, 0, 0, 1],
     rot90: [0, -1, 1, 0],
@@ -474,5 +719,6 @@
   global.LA = {
     css, I, apply, mul, det, inv, lerp, col1, col2, fromCols, norm, cross, dot, scale, add, sub, unit, perp, close,
     eig, sigmaMin, fmt, vfmt, snap, tween, wait, Plane, MatrixInput, matHTML, vecHTML, PRESETS,
+    Q, rref, nullBasis, transpose, vdot, vnorm, vadd, vsub, vscale, orthonormal, projectOn, View3,
   };
 })(window);

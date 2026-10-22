@@ -103,3 +103,33 @@
   .la-list .key, .la-list .go { display: none; }
 }
 .legend-row { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: #a3aab5; margin: 12px 0 0; }
+
+/* ---------- four-subspaces chapter ---------- */
+.sw.r { background: var(--la-i); }
+.sw.l { background: var(--la-j); }
+.cv-wrap .no-draw {
+  display: none; min-height: 220px; align-items: center; justify-content: center; text-align: center;
+  border: 1px dashed var(--line); color: var(--muted); font: 12px var(--mono); padding: 18px; line-height: 1.7;
+}
+.dims { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.dims select { padding: 5px 6px; }
+.mat.wide .mat-grid { gap: 5px 6px; }
+.mat.wide input { width: 50px; }
+.mat.vec .mat-grid { grid-template-columns: 54px; }
+.mat.vec input { width: 54px; color: var(--fg); }
+.vecs { display: flex; gap: 22px; flex-wrap: wrap; align-items: flex-start; }
+.vecs .btns { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.panel .vecs .btns button { padding: 5px 9px; font: 11px var(--mono); font-weight: 400; }
+.work { margin-top: 18px; border-top: 1px solid var(--line); }
+.work .row { display: grid; grid-template-columns: 150px 1fr; gap: 6px 14px; padding: 10px 0; border-bottom: 1px solid var(--line); align-items: center; }
+.work .k { font: 10px var(--mono); letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+.work .k b { display: block; color: var(--fg); font-weight: 500; letter-spacing: 0; text-transform: none; font-size: 12px; margin-top: 2px; }
+.work .v { font: 13px var(--mono); color: #c9ced6; line-height: 1.9; }
+.work .v .tag { color: var(--muted); }
+.work .yes { color: var(--accent); } .work .no { color: var(--accent2); }
+.mat-static .pc { color: var(--la-i); }
+.mat-static.dimmed .mg b { color: var(--muted); }
+@media (max-width: 560px) { .work .row { grid-template-columns: 1fr; } }
+.mlab { margin-top: 14px; background: var(--bg); border: 1px solid var(--line); padding: 12px 14px; font: 12px/1.75 var(--mono); color: #c9ced6; overflow-x: auto; white-space: pre; }
+.mlab .cm { color: var(--dim); }
+table.schemes td.y { color: var(--accent); } table.schemes td.n { color: var(--accent2); }
