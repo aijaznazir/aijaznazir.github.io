@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multiplication is composition | Linear Algebra</title>
+<meta name="description" content="An interactive explanation of matrix multiplication as composition of linear transformations, and why order matters.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}]})"></script>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../la.css">
+</head>
+<body>
+<canvas id="mathCanvas" aria-hidden="true"></canvas>
+<div class="noise"></div>
+
+<header class="nav">
+  <a class="brand" href="../../../index.html#top"><span>AN</span><b>Aijaz Nazir</b></a>
+  <nav>
+    <a href="../../../index.html#research">Research</a>
+    <a href="../../../index.html#projects">Projects</a>
+    <a href="../../../index.html#notes">Notes</a>
+    <a class="active" href="../../../explainers/">Explainers</a>
+    <a href="../../../publications-and-teaching.html">Publications & Teaching</a>
+    <a href="../../../index.html#about">About</a>
+    <a class="nav-cta" href="../../../contact.html">Contact</a>
+  </nav>
+  <button class="menu" aria-label="Open menu">☰</button>
+</header>
+<div class="crumb"><a href="../../">EXPLAINERS</a> / <a href="../">LINEAR ALGEBRA</a> / 03</div>
+<nav class="la-nav" aria-label="Chapters">
+  <a href="../">Overview</a>
+  <a href="../vectors/">01 Vectors</a>
+  <a href="../transformations/">02 Transformations</a>
+  <a class="on" aria-current="page" href="../composition/">03 Composition</a>
+  <a href="../determinant/">04 Determinant</a>
+  <a href="../inverse/">05 Inverse & rank</a>
+  <a href="../subspaces/">06 Four subspaces</a>
+  <a href="../eigen/">07 Eigenvectors</a>
+</nav>
+
+<main class="article">
+  <p class="kicker">Linear algebra · Chapter 3 of 7</p>
+  <h1>Matrix multiplication is doing one thing, then another</h1>
+  <p class="lede">Apply one transformation and then a second. The result is again linear, so it has a matrix, and following î and ĵ through both steps produces the rule for multiplying matrices.</p>
+
+  <h2>One transformation, then another</h2>
+  <p>Apply a transformation \(A\), then apply \(B\) to the result. Each vector travels \(\vec v \to A\vec v \to B(A\vec v)\). The two-step journey is itself a linear transformation: grid lines that stayed straight, parallel and evenly spaced after \(A\) still do after \(B\). So it has a matrix of its own, and we call that matrix the product \(BA\):</p>
+  $$(BA)\,\vec v = B(A\vec v).$$
+  <p>Note the order. The product is read right to left, like \(f(g(x))\) for functions: the matrix written on the right acts first.</p>
+
+  <h2>Finding the product by following î and ĵ</h2>
+  <p>Chapter 2 says the columns of any matrix are where \(\hat\imath\) and \(\hat\jmath\) land, so follow them through both steps. Take</p>
+  $$A = \begin{bmatrix} a & b \\ c & d \end{bmatrix}, \qquad B = \begin{bmatrix} e & f \\ g & h \end{bmatrix}.$$
+  <p>Step one: \(A\) sends \(\hat\imath\) to its first column \((a, c)\). Step two: \(B\) sends that vector to \(a\) times its first column plus \(c\) times its second:</p>
+  $$B\begin{bmatrix} a \\ c \end{bmatrix} = a\begin{bmatrix} e \\ g \end{bmatrix} + c\begin{bmatrix} f \\ h \end{bmatrix} = \begin{bmatrix} ea + fc \\ ga + hc \end{bmatrix}.$$
+  <p>That is the first column of \(BA\). The same two steps applied to \(\hat\jmath\), which \(A\) sends to \((b, d)\), give the second column:</p>
+  $$BA = \begin{bmatrix} ea + fc & eb + fd \\ ga + hc & gb + hd \end{bmatrix}.$$
+  <p>This is the usual row-times-column rule, but it does not need memorizing: each column of \(BA\) is \(B\) applied to the matching column of \(A\).</p>
+
+  <div class="panel" id="p3">
+    <div class="cv-wrap"><canvas id="cv"></canvas></div>
+    <div class="legend">
+      <span><span class="sw i"></span>where \(\hat\imath\) lands</span>
+      <span><span class="sw j"></span>where \(\hat\jmath\) lands</span>
+      <span><span class="sw dash"></span>landing spots for the other order</span>
+    </div>
+    <div class="la-row">
+      <div>
+        <span class="lbl">A</span><div id="matA"></div>
+        <div class="presets" id="preA" style="margin-top:8px"></div>
+      </div>
+      <div>
+        <span class="lbl">B</span><div id="matB"></div>
+        <div class="presets" id="preB" style="margin-top:8px"></div>
+      </div>
+    </div>
+    <div class="buttons">
+      <button class="primary" id="playBA">Play: A, then B</button>
+      <button class="primary" id="playAB">Play: B, then A</button>
+      <label class="check"><input type="checkbox" id="ghost" checked> compare with the other order</label>
+    </div>
+    <div class="eqline" id="eq"></div>
+    <div class="status" id="status"></div>
+    <div class="try">
+      <strong>Things to try</strong>
+      <ul>
+        <li>With "rotate 90°" as A and "shear" as B, play both orders. The final grids differ, and so do the two products.</li>
+        <li>Make A and B both rotations, or make one of them the identity. Now the two orders agree.</li>
+        <li>Check a column by hand: the first column of BA is B applied to the first column of A.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Order matters</h2>
+  <p>Rotating and then shearing is a different motion from shearing and then rotating. You can see it by following \(\hat\imath\): the rotation takes it to \((0, 1)\), and the shear then tips it to \((1, 1)\). In the other order the shear leaves \(\hat\imath\) alone and the rotation takes it to \((0, 1)\). Different landing spots mean different first columns, so \(BA \neq AB\) in general.</p>
+  <p>Some pairs do commute: two rotations of the plane, a scaling by the same factor in every direction combined with anything, and any matrix with the identity. These are exceptions, not the rule.</p>
+
+  <h2>Associativity for free</h2>
+  <p>For three transformations, \((CB)A\) and \(C(BA)\) both mean "apply \(A\), then \(B\), then \(C\)". They are the same transformation, so the matrices are equal:</p>
+  $$(CB)A = C(BA).$$
+  <p>Proving this from the entry formula takes a page of index bookkeeping. Seen as composition, there is nothing to prove.</p>
+
+  <nav class="la-pager" aria-label="Previous and next chapter">
+    <a class="pv" href="../transformations/"><span>← CHAPTER 2</span><b>Matrices as transformations</b></a>
+    <a class="nx" href="../determinant/"><span>CHAPTER 4 →</span><b>The determinant</b></a>
+  </nav>
+</main>
+
+<footer><span>© 2026 Aijaz Nazir</span><span>Mathematics · Computing · Learning</span></footer>
+<script src="../la.js"></script>
+<script>
+(function () {
+  "use strict";
+  const L = LA, $ = (id) => document.getElementById(id);
+  const PRE = { "identity": [1, 0, 0, 1], "rotate 90°": [0, -1, 1, 0], "shear": [1, 1, 0, 1], "stretch x": [2, 0, 0, 1], "reflect": [-1, 0, 0, 1], "rotate 45°": L.PRESETS.rot45 };
+  const st = { A: [0, -1, 1, 0], B: [1, 1, 0, 1], M: null, order: "BA", stage: "", playing: false };
+
+  const P = new L.Plane($("cv"), { range: 4.5, draw });
+  window.__plane = P;
+
+  const matA = L.MatrixInput($("matA"), { value: st.A, onChange: (m) => { st.A = m; settle(); } });
+  const matB = L.MatrixInput($("matB"), { value: st.B, onChange: (m) => { st.B = m; settle(); } });
+
+  function presets(el, key, mat) {
+    Object.entries(PRE).forEach(([name, m]) => {
+      const b = document.createElement("button");
+      b.textContent = name;
+      b.dataset.m = m.join(",");
+      b.addEventListener("click", () => { st[key] = m.slice(); mat.set(st[key]); settle(); });
+      el.appendChild(b);
+    });
+  }
+  presets($("preA"), "A", matA);
+  presets($("preB"), "B", matB);
+
+  const BA = () => L.mul(st.B, st.A);
+  const AB = () => L.mul(st.A, st.B);
+  const finalM = () => (st.order === "BA" ? BA() : AB());
+
+  function draw(P) {
+    P.baseGrid();
+    const M = st.M || finalM();
+    P.grid(M);
+    if ($("ghost").checked && !st.playing) {
+      const O = st.order === "BA" ? AB() : BA();
+      P.arrow(L.col1(O), { color: "--la-i", width: 2, dash: [5, 5], alpha: 0.55, head: 9 });
+      P.arrow(L.col2(O), { color: "--la-j", width: 2, dash: [5, 5], alpha: 0.55, head: 9 });
+    }
+    P.arrow(L.col1(M), { color: "--la-i", label: "î" });
+    P.arrow(L.col2(M), { color: "--la-j", label: "ĵ" });
+    P.hud(st.stage || (st.order === "BA" ? "result: BA  (A first, then B)" : "result: AB  (B first, then A)"), { color: st.playing ? "--accent" : "--muted" });
+  }
+
+  function settle() {
+    if (st.playing) { L.tween.cancel("p3"); st.playing = false; }
+    st.M = null;
+    st.stage = "";
+    update();
+  }
+
+  function update() {
+    const ba = BA(), ab = AB();
+    const same = L.close(ba, ab, 1e-9);
+    const c1A = L.col1(st.A);
+    $("eq").innerHTML =
+      "BA = " + L.matHTML(ba) + " &nbsp; AB = " + L.matHTML(ab) +
+      "<br>first column of BA = B·" + L.vecHTML(c1A) + " = " + L.fmt(c1A[0]) + '·<span class="ci">' + L.vfmt(L.col1(st.B)) + "</span> + " +
+      L.fmt(c1A[1]) + '·<span class="cj">' + L.vfmt(L.col2(st.B)) + "</span> = <b>" + L.vfmt(L.col1(ba)) + "</b>";
+    const s = $("status");
+    s.className = same ? "status good" : "status bad";
+    s.textContent = same
+      ? "These two commute: AB = BA, so both orders end in the same place."
+      : "AB ≠ BA: the two orders send î and ĵ to different places.";
+    for (const [id, key] of [["preA", "A"], ["preB", "B"]])
+      document.querySelectorAll("#" + id + " button").forEach((b) => b.classList.toggle("on", L.close(b.dataset.m.split(",").map(Number), st[key], 1e-6)));
+    P.render();
+  }
+
+  async function play(order) {
+    L.tween.cancel("p3");
+    st.order = order;
+    st.playing = true;
+    const first = order === "BA" ? st.A : st.B, second = order === "BA" ? st.B : st.A;
+    const n1 = order === "BA" ? "A" : "B", n2 = order === "BA" ? "B" : "A";
+    st.M = L.I;
+    st.stage = "start: identity";
+    P.render();
+    if (!(await L.wait(350, "p3"))) return;
+    st.stage = "applying " + n1;
+    if (!(await L.tween(1100, (t) => { st.M = L.lerp(L.I, first, t); P.render(); }, "p3"))) return;
+    st.stage = "after " + n1 + ", now applying " + n2;
+    if (!(await L.wait(450, "p3"))) return;
+    if (!(await L.tween(1100, (t) => { st.M = L.mul(L.lerp(L.I, second, t), first); P.render(); }, "p3"))) return;
+    st.playing = false;
+    st.M = null;
+    st.stage = "";
+    update();
+  }
+
+  $("playBA").addEventListener("click", () => play("BA"));
+  $("playAB").addEventListener("click", () => play("AB"));
+  $("ghost").addEventListener("change", () => P.render());
+  update();
+})();
+
+</script>
+<script src="../../../script.js"></script>
+</body>
+</html>

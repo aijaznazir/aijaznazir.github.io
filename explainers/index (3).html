@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Linear Algebra, as Geometry</title>
+<meta name="description" content="A seven-chapter, picture-first introduction to linear algebra: vectors and span, matrices as transformations, composition, determinants, inverses, range and kernel with the four fundamental subspaces, and eigenvectors, each with an interactive visualizer.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}]})"></script>
+<link rel="stylesheet" href="../../style.css">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="la.css">
+</head>
+<body>
+<canvas id="mathCanvas" aria-hidden="true"></canvas>
+<div class="noise"></div>
+
+<header class="nav">
+  <a class="brand" href="../../index.html#top"><span>AN</span><b>Aijaz Nazir</b></a>
+  <nav>
+    <a href="../../index.html#research">Research</a>
+    <a href="../../index.html#projects">Projects</a>
+    <a href="../../index.html#notes">Notes</a>
+    <a class="active" href="../../explainers/">Explainers</a>
+    <a href="../../publications-and-teaching.html">Publications & Teaching</a>
+    <a href="../../index.html#about">About</a>
+    <a class="nav-cta" href="../../contact.html">Contact</a>
+  </nav>
+  <button class="menu" aria-label="Open menu">☰</button>
+</header>
+<div class="crumb"><a href="../">EXPLAINERS</a> / 04</div>
+
+<main class="article">
+  <p class="kicker">Linear algebra · A seven-chapter series</p>
+  <h1>Linear algebra, as geometry</h1>
+  <p class="lede">Most courses begin with rules for manipulating arrays of numbers. This series begins with pictures: arrows, grids, and the motions of the plane that matrices describe. Each rule then becomes something you can see, and drag.</p>
+
+  <div class="la-hero">
+    <canvas id="hero" aria-label="A grid being transformed by a sequence of matrices"></canvas>
+    <div class="cap"><span>EACH FRAME: THE GRID MOVED BY ONE 2×2 MATRIX</span><span id="hero-cap"></span></div>
+  </div>
+
+  <h2>The one idea underneath</h2>
+  <p>A 2×2 matrix is a complete description of a motion of the plane that keeps the origin fixed and keeps grid lines straight, parallel and evenly spaced. Its two columns say where the arrows \(\hat\imath = (1,0)\) and \(\hat\jmath = (0,1)\) end up, and that is enough to know where every other point goes. Every chapter below is that idea seen from another side: multiplication is doing two motions in a row, the determinant is how the motion scales area, inverses undo it, and eigenvectors are the directions it leaves pointing the same way.</p>
+  <p>Everything happens in two dimensions, where every step can be drawn. The definitions and arguments are chosen so that they carry over to higher dimensions unchanged.</p>
+
+  <h3>How to read the pictures</h3>
+  <div class="legend-row">
+    <span><span class="sw i"></span>\(\hat\imath\) and the first column</span>
+    <span><span class="sw j"></span>\(\hat\jmath\) and the second column</span>
+    <span><span class="sw v"></span>vectors you can drag</span>
+    <span><span class="sw g"></span>the moved grid</span>
+    <span><span class="sw e"></span>special directions and solution sets</span>
+  </div>
+  <p>Anything with a ring at its tip can be dragged. Points snap to whole numbers when they are close, so it is easy to set up clean examples.</p>
+
+  <h2>Chapters</h2>
+  <div class="la-list">
+    <a href="vectors/">
+      <span class="n">01</span>
+      <div><h3>Vectors, span and basis</h3><p>Arrows, linear combinations, and when two vectors are enough to reach every point.</p></div>
+      <span class="key">\(a\vec v + b\vec w\)</span>
+    </a>
+    <a href="transformations/">
+      <span class="n">02</span>
+      <div><h3>Matrices as transformations</h3><p>Why a matrix's columns are where \(\hat\imath\) and \(\hat\jmath\) land, and what multiplying by a vector really does.</p></div>
+      <span class="key">\(A\vec v = x\,\mathbf a_1 + y\,\mathbf a_2\)</span>
+    </a>
+    <a href="composition/">
+      <span class="n">03</span>
+      <div><h3>Multiplication is composition</h3><p>Two motions in a row, the multiplication rule derived by following \(\hat\imath\) and \(\hat\jmath\), and why order matters.</p></div>
+      <span class="key">\((BA)\vec v = B(A\vec v)\)</span>
+    </a>
+    <a href="determinant/">
+      <span class="n">04</span>
+      <div><h3>The determinant</h3><p>The single factor by which every area scales, its sign, and where \(ad - bc\) comes from.</p></div>
+      <span class="key">\(\det A = ad - bc\)</span>
+    </a>
+    <a href="inverse/">
+      <span class="n">05</span>
+      <div><h3>Inverses, column space and null space</h3><p>Solving \(A\vec x = \vec b\): one answer, none, or a whole line of them, and how to tell which.</p></div>
+      <span class="key">\(\vec x = A^{-1}\vec b\)</span>
+    </a>
+    <a href="subspaces/">
+      <span class="n">06</span>
+      <div><h3>Range, kernel and the four subspaces</h3><p>What a transformation can reach and what it destroys: column space, null space, rank–nullity, one-to-one and onto, and the row and left null spaces. Explore 2×2 to 3×4 matrices in 2D and 3D.</p></div>
+      <span class="key">\(\operatorname{rank} + \operatorname{nullity} = n\)</span>
+    </a>
+    <a href="eigen/">
+      <span class="n">07</span>
+      <div><h3>Eigenvectors and eigenvalues</h3><p>The directions a transformation keeps, how to find them, and why repeated application lines up with them.</p></div>
+      <span class="key">\(A\vec v = \lambda\vec v\)</span>
+    </a>
+  </div>
+
+  <div class="note">
+    <strong>Where this comes from.</strong> The approach, transformations first and formulas second, follows the one made popular by 3Blue1Brown's <a href="https://www.3blue1brown.com/lessons/eola-preview" target="_blank" rel="noopener">Essence of Linear Algebra</a> videos, which are worth watching alongside. The text and visualizers here are original.
+  </div>
+
+  <a class="next" href="../burgers/"><span><span>NEXT EXPLAINER</span><b>Burgers' Equation &amp; Shocks</b></span><i>→</i></a>
+</main>
+
+<footer><span>© 2026 Aijaz Nazir</span><span>Mathematics · Computing · Learning</span></footer>
+<script src="la.js"></script>
+<script>
+(function () {
+  "use strict";
+  const L = LA;
+  const SEQ = [
+    { m: [1, 0, 0, 1], name: "identity" },
+    { m: [1, 1, 0, 1], name: "shear" },
+    { m: [0, -1, 1, 0], name: "rotation by 90°" },
+    { m: [2, 0, 0, 0.6], name: "stretch" },
+    { m: [1.5, -0.5, 1, 1], name: "a general matrix" },
+    { m: [-1, 0, 0, 1], name: "reflection" },
+    { m: [1, 2, 0.5, 1], name: "squish onto a line" },
+  ];
+  let M = SEQ[0].m, k = 0, shown = SEQ[0];
+  const P = new L.Plane(document.getElementById("hero"), {
+    range: 3.6, aspect: 0.5, minH: 220, maxH: 400, maxVH: 0.5,
+    draw(P) {
+      P.baseGrid();
+      P.grid(M, { alpha: 0.5 });
+      P.arrow(L.col1(M), { color: "--la-i", label: "î" });
+      P.arrow(L.col2(M), { color: "--la-j", label: "ĵ" });
+    },
+  });
+  const cap = document.getElementById("hero-cap");
+  function caption() {
+    cap.innerHTML = "<b>" + shown.name + "</b> &nbsp; [" + shown.m.map((x) => L.fmt(x)).join(", ").replace(/^(.*?, .*?), /, "$1; ") + "] &nbsp; det " + L.fmt(L.det(shown.m));
+  }
+  caption();
+  P.render();
+
+  let visible = true;
+  if ("IntersectionObserver" in window)
+    new IntersectionObserver((es) => { visible = es[0].isIntersecting; }).observe(P.c);
+  const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  async function loop() {
+    for (;;) {
+      await new Promise((r) => setTimeout(r, 1500));
+      if (!visible || document.hidden) continue;
+      const from = M, next = SEQ[(k + 1) % SEQ.length];
+      await L.tween(1300, (t) => { M = L.lerp(from, next.m, t); P.render(); }, "hero");
+      k = (k + 1) % SEQ.length;
+      M = next.m;
+      shown = next;
+      caption();
+      P.render();
+    }
+  }
+  if (!reduced) loop();
+})();
+</script>
+<script src="../../script.js"></script>
+</body>
+</html>
