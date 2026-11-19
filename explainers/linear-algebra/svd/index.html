@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Singular Value Decomposition | Linear Algebra</title>
+<meta name="description" content="An interactive explanation of the singular value decomposition: every matrix as rotate, stretch, rotate; singular values from AᵀA; the four subspaces; best low-rank approximation; and applications such as PCA, POD, least squares and conditioning.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}]})"></script>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../la.css">
+</head>
+<body>
+<canvas id="mathCanvas" aria-hidden="true"></canvas>
+<div class="noise"></div>
+
+<header class="nav">
+  <a class="brand" href="../../../index.html#top"><span>AN</span><b>Aijaz Nazir</b></a>
+  <nav>
+    <a href="../../../index.html#research">Research</a>
+    <a href="../../../index.html#projects">Projects</a>
+    <a href="../../../index.html#notes">Notes</a>
+    <a class="active" href="../../../explainers/">Explainers</a>
+    <a href="../../../publications-and-teaching.html">Publications & Teaching</a>
+    <a href="../../../index.html#about">About</a>
+    <a class="nav-cta" href="../../../contact.html">Contact</a>
+  </nav>
+  <button class="menu" aria-label="Open menu">☰</button>
+</header>
+<div class="crumb"><a href="../../">EXPLAINERS</a> / <a href="../">LINEAR ALGEBRA</a> / 08</div>
+<nav class="la-nav" aria-label="Chapters">
+  <a href="../">Overview</a>
+  <a href="../vectors/">01 Vectors</a>
+  <a href="../transformations/">02 Transformations</a>
+  <a href="../composition/">03 Composition</a>
+  <a href="../determinant/">04 Determinant</a>
+  <a href="../inverse/">05 Inverse & rank</a>
+  <a href="../subspaces/">06 Four subspaces</a>
+  <a href="../eigen/">07 Eigenvectors</a>
+  <a class="on" aria-current="page" href="../svd/">08 SVD</a>
+</nav>
+
+<main class="article">
+  <p class="kicker">Linear algebra · Chapter 8 of 8</p>
+  <h1>The singular value decomposition: rotate, stretch, rotate</h1>
+  <p class="lede">Every matrix, square or not, does the same three things: it turns the input space, stretches it along perpendicular axes, and turns the result into place. The stretch factors, the singular values, say how big, how flat and how compressible a matrix is.</p>
+  <h2>Every matrix turns a circle into an ellipse</h2>
+  <p>Apply a 2×2 matrix \(A\) to every vector on the unit circle. Because grid lines stay straight, parallel and evenly spaced, the circle lands on an ellipse, possibly flattened into a segment. An ellipse has a longest radius and a shortest one, at right angles to each other. Call their lengths</p>
+  $$\sigma_1 \ge \sigma_2 \ge 0 .$$
+  <p>These are the <em>singular values</em> of \(A\). The directions of the ellipse's axes are unit vectors \(\vec u_1, \vec u_2\), and the input vectors that land on them are unit vectors \(\vec v_1, \vec v_2\) on the circle:</p>
+  $$A\vec v_1 = \sigma_1\vec u_1, \qquad A\vec v_2 = \sigma_2\vec u_2 .$$
+  <p>The surprising part is that \(\vec v_1\) and \(\vec v_2\) are also perpendicular. So every matrix, however it shears or skews the grid, sends some pair of perpendicular directions to another pair of perpendicular directions, stretched by \(\sigma_1\) and \(\sigma_2\).</p>
+
+  <h3>Why a perpendicular pair always survives</h3>
+  <p>Here is a two-line argument in the plane. Let \(\vec v(\theta) = (\cos\theta, \sin\theta)\) and \(\vec v^{\perp}(\theta) = (-\sin\theta, \cos\theta)\), a quarter-turn further on. Measure how far their images are from perpendicular:</p>
+  $$f(\theta) = A\vec v(\theta)\cdot A\vec v^{\perp}(\theta).$$
+  <p>Turning by a further quarter-turn sends \(\vec v\) to \(\vec v^{\perp}\) and \(\vec v^{\perp}\) to \(-\vec v\), so \(f(\theta + \pi/2) = -f(\theta)\). A continuous function that changes sign must pass through zero, so at some \(\theta\) the images are perpendicular. In higher dimensions the same fact comes from the symmetric matrix \(A^{T}A\), below.</p>
+
+  <h2>Rotate, stretch, rotate</h2>
+  <p>Collect the vectors as columns, \(V = [\,\vec v_1\;\vec v_2\,]\) and \(U = [\,\vec u_1\;\vec u_2\,]\), and put the singular values on a diagonal. The two equations above say \(AV = U\Sigma\). Since \(V\) has orthonormal columns, \(V^{-1} = V^{T}\), and so</p>
+  $$A = U\,\Sigma\,V^{T}, \qquad \Sigma = \begin{bmatrix} \sigma_1 & 0 \\ 0 & \sigma_2 \end{bmatrix}.$$
+  <p>Read right to left as in chapter 3, this is a three-step recipe for <em>any</em> matrix:</p>
+  <ul>
+    <li>\(V^{T}\) rotates the plane so that \(\vec v_1, \vec v_2\) line up with \(\hat\imath, \hat\jmath\);</li>
+    <li>\(\Sigma\) stretches along the axes, by \(\sigma_1\) horizontally and \(\sigma_2\) vertically;</li>
+    <li>\(U\) rotates the axes onto \(\vec u_1, \vec u_2\).</li>
+  </ul>
+  <p>Orthogonal matrices cannot change lengths or angles, so all of the stretching is concentrated in \(\Sigma\). If \(\det A &lt; 0\), one of the two orthogonal steps must also include a reflection; the visualizer puts it in \(U\). Since \(\det U\) and \(\det V\) are \(\pm 1\), the determinant becomes \(\det A = \pm\,\sigma_1\sigma_2\): the area factor from chapter 4 is the product of the two stretches.</p>
+
+  <div class="panel" id="p8">
+    <div class="cv-wrap"><canvas id="cv"></canvas></div>
+    <div class="legend">
+      <span><span class="sw g"></span>the unit circle and its image</span>
+      <span><span class="sw e"></span>\(\vec v_1 \to \sigma_1\vec u_1\)</span>
+      <span><span class="sw l"></span>\(\vec v_2 \to \sigma_2\vec u_2\)</span>
+      <span><span class="sw v"></span>a unit vector \(\vec x\) (drag) and its image</span>
+    </div>
+    <div class="la-row">
+      <div><span class="lbl">Matrix A</span><div id="mat"></div></div>
+      <div>
+        <span class="lbl">Presets</span>
+        <div class="presets" id="presets">
+          <button data-m="2,1,0.5,1.5">general</button>
+          <button data-m="1,1,0,1">shear</button>
+          <button data-m="3,1,1,3">symmetric</button>
+          <button data-m="1,2,-1,1">skew</button>
+          <button data-m="1,2,2,1">det &lt; 0</button>
+          <button data-m="1,2,0.5,1">rank 1</button>
+        </div>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="control">
+        <label for="s">Step: start → Vᵀ → Σ → U <output id="s-out"></output></label>
+        <input type="range" id="s" min="0" max="3" step="0.01" value="3">
+      </div>
+    </div>
+    <div class="buttons">
+      <button class="primary" id="play">Play all three steps</button>
+      <button id="st1">1 · Vᵀ</button>
+      <button id="st2">2 · Σ</button>
+      <button id="st3">3 · U</button>
+      <button id="st0">Back to the circle</button>
+    </div>
+    <div class="eqline" id="eq"></div>
+    <div class="status" id="status"></div>
+    <div class="try">
+      <strong>Things to try</strong>
+      <ul>
+        <li>Play the three steps for the shear. A shear looks like pure sliding, yet it is a rotation, a stretch by the golden ratio 1.618 in one direction and a squeeze by 0.618 in the other, and another rotation.</li>
+        <li>Drag \(\vec x\) around the circle. Its image is longest at \(\pm\vec v_1\) (length \(\sigma_1\)) and shortest at \(\pm\vec v_2\) (length \(\sigma_2\)).</li>
+        <li>Pick "symmetric": \(\vec u_i = \vec v_i\), and the singular vectors are the eigenvectors from chapter 7.</li>
+        <li>Pick "rank 1": \(\sigma_2 = 0\), and the ellipse is flattened to a segment along the column space.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>How to compute it: the matrix \(A^{T}A\)</h2>
+  <p>Lengths are easiest to handle squared. For any input \(\vec x\),</p>
+  $$|A\vec x|^2 = (A\vec x)\cdot(A\vec x) = \vec x^{T}\!\left(A^{T}A\right)\vec x .$$
+  <p>The matrix \(A^{T}A\) is symmetric, so it has real eigenvalues and an orthonormal set of eigenvectors (the spectral theorem). Its eigenvalues are never negative: if \(A^{T}A\vec v = \lambda\vec v\) with \(|\vec v| = 1\), then \(\lambda = \vec v^{T}A^{T}A\vec v = |A\vec v|^2 \ge 0\). So:</p>
+  <ul>
+    <li>the right singular vectors \(\vec v_i\) are the orthonormal eigenvectors of \(A^{T}A\);</li>
+    <li>the singular values are \(\sigma_i = \sqrt{\lambda_i}\), the lengths \(|A\vec v_i|\);</li>
+    <li>the left singular vectors are \(\vec u_i = A\vec v_i / \sigma_i\) for each \(\sigma_i &gt; 0\).</li>
+  </ul>
+  <p>The \(\vec u_i\) are orthonormal automatically: \(\vec u_i\cdot\vec u_j = \vec v_i^{T}A^{T}A\vec v_j/(\sigma_i\sigma_j) = \lambda_j\,\vec v_i\cdot\vec v_j/(\sigma_i\sigma_j)\), which is 1 when \(i = j\) and 0 otherwise. Nothing here needs \(A\) to be square. An \(m\times n\) matrix has \(A = U\Sigma V^{T}\) with \(U\) of size \(m\times m\), \(V\) of size \(n\times n\), and \(\Sigma\) an \(m\times n\) matrix that is zero except for \(\sigma_1 \ge \sigma_2 \ge \cdots \ge 0\) down its diagonal.</p>
+  <p>This is the key difference from eigenvectors. Eigenvectors may fail to exist (a rotation), may be too few (a shear), and need not be perpendicular; they also only make sense for square matrices. Singular vectors always exist, always come as orthonormal bases, and use two different bases, one for the inputs and one for the outputs. For a symmetric matrix the two ideas agree: the singular values are \(|\lambda_i|\) and the singular vectors are eigenvectors.</p>
+  <p>In practice no one forms \(A^{T}A\): squaring the matrix squares its condition number and loses accuracy. Library routines such as MATLAB's <code>svd</code> work on \(A\) directly. The visualizers here use one such method, one-sided Jacobi rotations, which applies rotations to pairs of columns of \(A\) until all its columns are orthogonal.</p>
+
+  <h2>The SVD and the four subspaces</h2>
+  <p>Let \(r\) be the number of nonzero singular values. Then \(A\vec v_i = \sigma_i\vec u_i\) is nonzero for \(i \le r\) and zero for \(i &gt; r\), and the four subspaces of chapter 6 can be read straight off the two bases:</p>
+  <div class="table-wrap">
+  <table class="schemes">
+    <thead><tr><th>Subspace</th><th>Orthonormal basis from the SVD</th><th>Dimension</th></tr></thead>
+    <tbody>
+      <tr><td>\(\operatorname{Row}(A)\)</td><td>\(\vec v_1, \ldots, \vec v_r\)</td><td>\(r\)</td></tr>
+      <tr><td>\(\operatorname{Nul}(A)\)</td><td>\(\vec v_{r+1}, \ldots, \vec v_n\)</td><td>\(n - r\)</td></tr>
+      <tr><td>\(\operatorname{Col}(A)\)</td><td>\(\vec u_1, \ldots, \vec u_r\)</td><td>\(r\)</td></tr>
+      <tr><td>\(\operatorname{Nul}(A^{T})\)</td><td>\(\vec u_{r+1}, \ldots, \vec u_m\)</td><td>\(m - r\)</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>So the rank is the number of nonzero singular values, and the SVD hands over all four subspaces at once, each with a perpendicular basis. In floating point "nonzero" means "above a tolerance": MATLAB's <code>rank</code> counts the singular values larger than a small multiple of \(\sigma_1\), which is more reliable than counting pivots after rounding errors.</p>
+
+  <h2>A sum of rank-one pieces</h2>
+  <p>Multiply out \(U\Sigma V^{T}\) column by column and the SVD becomes a sum:</p>
+  $$A = \sigma_1\,\vec u_1\vec v_1^{T} + \sigma_2\,\vec u_2\vec v_2^{T} + \cdots + \sigma_r\,\vec u_r\vec v_r^{T}.$$
+  <p>Each term \(\vec u_i\vec v_i^{T}\) is a rank-one matrix, an outer product, and the terms come in decreasing order of importance. Keeping only the first \(k\) gives \(A_k\). The Eckart–Young theorem says that no matrix of rank \(k\) is closer to \(A\), measured either by the largest stretch of the difference or by the Frobenius norm (the root of the sum of squared entries). The error is known exactly:</p>
+  $$\|A - A_k\|_F = \sqrt{\sigma_{k+1}^2 + \cdots + \sigma_r^2}, \qquad \|A - A_k\|_2 = \sigma_{k+1}.$$
+  <p>How fast the singular values fall decides how compressible \(A\) is. Storing \(A_k\) takes \(k\) vectors \(\vec u_i\), \(k\) vectors \(\vec v_i\) and \(k\) numbers, so \(k(m + n + 1)\) numbers instead of \(mn\).</p>
+
+  <div class="panel" id="p9">
+    <div class="duo">
+      <div><p class="cv-tag">Original <b id="dims"></b></p><div class="cv-wrap"><canvas id="img0"></canvas></div></div>
+      <div><p class="cv-tag">Rank-<b id="kname">k</b> approximation A<sub>k</sub></p><div class="cv-wrap"><canvas id="img1"></canvas></div></div>
+    </div>
+    <div class="la-row">
+      <div style="flex:1;min-width:240px">
+        <span class="lbl">Matrix to compress (each pixel is one entry)</span>
+        <div class="presets" id="imgsel">
+          <button data-img="vortex">vortex wake</button>
+          <button data-img="text">lettering</button>
+          <button data-img="noise">random noise</button>
+        </div>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="control">
+        <label for="k">Rank k kept <output id="k-out"></output></label>
+        <input type="range" id="k" min="1" max="96" step="1" value="6">
+      </div>
+    </div>
+    <p class="sub-title" style="margin-top:18px">Singular values σ<sub>i</sub>/σ<sub>1</sub>, log scale (kept ones in lime)</p>
+    <div class="cv-wrap"><canvas id="spec"></canvas></div>
+    <div class="readouts" id="rd"></div>
+    <div class="try">
+      <strong>Things to try</strong>
+      <ul>
+        <li>The wake is recognisable by rank 4 to 6 and visually exact by rank 10, where the error drops below 1%: its singular values fall off a cliff.</li>
+        <li>The lettering needs more terms, about 40 for 1% error. Its sharp edges spread energy across many singular values.</li>
+        <li>Random noise has no structure beyond its average brightness, which accounts for the one large σ₁. The remaining singular values are nearly flat, so the approximation stays poor until k is large.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Where the SVD is used</h2>
+  <p><strong>Compression and low-rank models.</strong> The panel above is the whole idea: keep the leading terms and discard the rest, knowing the error exactly. The same truncation is used to compress large data sets and to fill in missing entries of rating tables in recommender systems, where a low-rank model captures "taste" in a handful of directions.</p>
+  <p><strong>Principal component analysis (PCA).</strong> Put \(N\) data points as the rows of a matrix and subtract the mean of each column. The right singular vectors are the principal directions, the directions of greatest spread, and \(\sigma_i^2/(N-1)\) is the variance of the data along \(\vec v_i\). Projecting onto the first few \(\vec v_i\) is the standard way to reduce the dimension of data.</p>
+  <p><strong>Reduced-order models of flows (POD).</strong> In fluid dynamics, store snapshots of a simulated flow at many times as the columns of a matrix. Its left singular vectors are the proper orthogonal decomposition (POD) modes: the spatial patterns that capture the most energy, in order. Projecting the governing equations onto the first few modes gives a reduced-order model that is far cheaper to run. (The vortex wake above compresses a single snapshot treated as a matrix, which shows the decay of singular values but is not POD itself.)</p>
+  <p><strong>Least squares and the pseudo-inverse.</strong> When \(A\vec x = \vec b\) has no solution (chapter 5), the best compromise uses \(A^{+} = V\Sigma^{+}U^{T}\), where \(\Sigma^{+}\) inverts the nonzero \(\sigma_i\) and leaves the zeros alone. Then \(\vec x = A^{+}\vec b\) lands as close to \(\vec b\) as possible, and is the shortest such \(\vec x\).</p>
+  <p><strong>Conditioning.</strong> For a square invertible \(A\), the condition number \(\kappa(A) = \sigma_1/\sigma_n\) measures how much relative errors in \(\vec b\) can be amplified in the solution of \(A\vec x = \vec b\). A thin ellipse in the first visualizer means a large \(\kappa\): some directions are stretched far more than others, and the system is sensitive to small errors.</p>
+
+  <div class="mlab"><span class="cm">% the same ideas in MATLAB</span>
+[U, S, V] = svd(A);                        <span class="cm">% A = U*S*V'</span>
+s  = diag(S);                              <span class="cm">% singular values, largest first</span>
+Ak = U(:,1:k) * S(1:k,1:k) * V(:,1:k)';    <span class="cm">% best rank-k approximation</span>
+err = norm(A - Ak, 'fro');                 <span class="cm">% equals sqrt(sum(s(k+1:end).^2))</span>
+r  = rank(A);                              <span class="cm">% counts singular values above a tolerance</span>
+x  = pinv(A) * b;                          <span class="cm">% least-squares solution via the SVD</span>
+kappa = cond(A);                           <span class="cm">% s(1)/s(end)</span></div>
+
+  <div class="note">
+    <strong>About the visualizers.</strong> Both panels compute the SVD in the browser with one-sided Jacobi rotations. In the first, the animation applies the factors themselves: each frame of a step is a genuine rotation by part of the angle, or a stretch by an interpolated factor. That differs from the earlier chapters, which slide matrix entries from the identity. If \(\det A &lt; 0\), the reflection inside \(U\) is shown by squashing the plane through a line and out the other side, since no rotation can turn the plane over. The images in the second panel are matrices of 96 rows and 128 columns.
+  </div>
+
+  <nav class="la-pager" aria-label="Previous and next chapter">
+    <a class="pv" href="../eigen/"><span>← CHAPTER 7</span><b>Eigenvectors and eigenvalues</b></a>
+    <a class="nx" href="../"><span>SERIES →</span><b>Back to the overview</b></a>
+  </nav>
+</main>
+
+<footer><span>© 2026 Aijaz Nazir</span><span>Mathematics · Computing · Learning</span></footer>
+<script src="../la.js"></script>
+<script>
+(function () {
+  "use strict";
+  const L = LA, $ = (id) => document.getElementById(id);
+  const clamp01 = (x) => Math.max(0, Math.min(1, x));
+
+  /* =================== Panel 1: rotate, stretch, rotate =================== */
+  const st = { m: [2, 1, 0.5, 1.5], s: 3, x: [Math.cos(0.9), Math.sin(0.9)], playing: false };
+  let d = L.svd2(st.m);
+  const CIRC = [];
+  for (let k = 0; k < 240; k++) { const a = (2 * Math.PI * k) / 240; CIRC.push([Math.cos(a), Math.sin(a)]); }
+
+  /* matrix shown at step s in [0, 3]: R(psi t3) F(t3) D(t2) R(-phi t1) */
+  function frame(s) {
+    const t1 = clamp01(s), t2 = clamp01(s - 1), t3 = clamp01(s - 2);
+    const D = [1 + (d.s1 - 1) * t2, 0, 0, 1 + (d.s2 - 1) * t2];
+    const F = d.flip ? [1, 0, 0, 1 - 2 * t3] : L.I;
+    return L.mul(L.mul(L.rot(d.psi * t3), F), L.mul(D, L.rot(-d.phi * t1)));
+  }
+  const stageName = (s) =>
+    s <= 0.001 ? "start: the unit circle, with v₁ and v₂ on it" :
+    s <= 1 ? "step 1 · Vᵀ: rotate so v₁, v₂ line up with the axes" :
+    s <= 2 ? "step 2 · Σ: stretch by σ₁ along x and σ₂ along y" :
+    "step 3 · U: " + (d.flip ? "reflect and rotate" : "rotate") + " the axes onto u₁, u₂";
+
+  const P = new L.Plane($("cv"), { range: 3.6, draw, onDrag: () => { mat.set(st.m); recompute(); } });
+  window.__plane = P;
+  const atEnd = () => !st.playing && st.s >= 3;
+  P.addHandle({ get: () => L.col1(st.m), set: (x, y) => { st.m[0] = x; st.m[2] = y; }, color: "--la-i", enabled: atEnd });
+  P.addHandle({ get: () => L.col2(st.m), set: (x, y) => { st.m[1] = x; st.m[3] = y; }, color: "--la-j", enabled: atEnd });
+  P.addHandle({
+    get: () => st.x, color: "--la-v", enabled: () => !st.playing,
+    set: (x, y) => { const r = Math.hypot(x, y) || 1; st.x = [x / r, y / r]; },
+    snap: (x, y) => { // keep x on the unit circle, snapping to whole degrees
+      const a = Math.round((Math.atan2(y, x) * 180) / Math.PI) * Math.PI / 180;
+      return [Math.cos(a), Math.sin(a)];
+    },
+  });
+  const mat = L.MatrixInput($("mat"), { value: st.m, onChange: (m) => { st.m = m; recompute(); } });
+
+  function draw(P) {
+    P.baseGrid();
+    const M = frame(st.s);
+    P.grid(M, { alpha: 0.28 });
+    // input circle (faint, dashed) and its image
+    P.poly(CIRC, { stroke: "--muted", width: 1 });
+    P.poly(CIRC.map((p) => L.apply(M, p)), { fill: "--la-grid", alpha: 0.13, stroke: "--la-grid", width: 2 });
+    const a1 = L.apply(M, d.v1), a2 = L.apply(M, d.v2);
+    if (Math.abs(L.det(M)) > 1e-9) P.turn(a1, a2, 0.45, { color: L.det(M) > 0 ? "--la-i" : "--la-j", width: 1.5 });
+    const end = st.s >= 3 - 1e-9, start = st.s <= 1e-9;
+    P.arrow(a1, { color: "--la-eig", width: 3, label: start ? "v₁" : end ? "σ₁u₁" : null });
+    P.arrow(a2, { color: "--la-j", width: 3, label: start ? "v₂" : end ? "σ₂u₂" : null });
+    if (!start) {
+      P.arrow(d.v1, { color: "--la-eig", width: 1.5, dash: [4, 4], alpha: 0.5, head: 8 });
+      P.arrow(d.v2, { color: "--la-j", width: 1.5, dash: [4, 4], alpha: 0.5, head: 8 });
+    }
+    // skip a label when its tip sits on top of another labelled tip
+    const px = (v) => [P.X(v[0]), P.Y(v[1])];
+    const clash = (v, others) => others.some((o) => Math.hypot(px(v)[0] - px(o)[0], px(v)[1] - px(o)[1]) < 30);
+    const Mx = L.apply(M, st.x);
+    P.arrow(st.x, { color: "--la-v", width: 2, dash: [5, 5], alpha: 0.6, head: 9, label: start || clash(st.x, [Mx, a1, a2]) ? null : "x" });
+    P.arrow(Mx, { color: "--la-v", width: 3, label: clash(Mx, [a1, a2]) ? null : start ? "x" : end ? "Ax" : null });
+    P.hud(stageName(st.s), { color: st.playing ? "--accent" : "--muted" });
+  }
+
+  function readout() {
+    const fm = L.matHTML;
+    const Ax = L.apply(st.m, st.x), nx = L.norm(Ax);
+    const kappa = d.s2 > 1e-12 ? L.fmt(d.s1 / d.s2, 3) : "∞";
+    $("eq").innerHTML =
+      "A = " + fm(st.m) + " = U " + fm(d.U, false) + " · Σ " + fm([d.s1, 0, 0, d.s2], false) + " · Vᵀ " + fm([d.V[0], d.V[2], d.V[1], d.V[3]], false) +
+      '<br><span class="ce">σ₁ = <b>' + L.fmt(d.s1, 3) + "</b></span> &nbsp; " + '<span class="cj">σ₂ = <b>' + L.fmt(d.s2, 3) + "</b></span>" +
+      " &nbsp; det A = " + (L.det(st.m) < 0 ? "−" : "") + "σ₁σ₂ = <b>" + L.fmt(L.det(st.m), 3) + "</b> &nbsp; κ = σ₁/σ₂ = <b>" + kappa + "</b>" +
+      '<br>v₁ = <b>' + L.vfmt(d.v1) + "</b> → u₁ = <b>" + L.vfmt(d.u1) + "</b> &nbsp; v₂ = <b>" + L.vfmt(d.v2) + "</b> → u₂ = <b>" + L.vfmt(d.u2) + "</b>" +
+      '<br><span class="cvv">|Ax| = <b>' + L.fmt(nx, 3) + "</b></span> for x at " + Math.round((Math.atan2(st.x[1], st.x[0]) * 180) / Math.PI) + "° (always between σ₂ and σ₁)";
+    const s = $("status");
+    if (d.s1 < 1e-12) { s.className = "status bad"; s.textContent = "A is the zero matrix: every singular value is 0 and the circle collapses to a point."; }
+    else if (d.s2 < 1e-9) { s.className = "status bad"; s.textContent = "σ₂ = 0, so A has rank 1: the circle is flattened onto a segment of length 2σ₁ along the column space, and v₂ spans the null space."; }
+    else if (Math.abs(d.s1 - d.s2) < 1e-9) { s.className = "status good"; s.textContent = "σ₁ = σ₂: A is a rotation or reflection times a scaling, so every pair of perpendicular directions works as v₁, v₂."; }
+    else { s.className = "status good"; s.textContent = "The circle becomes an ellipse with semi-axes σ₁ = " + L.fmt(d.s1, 3) + " and σ₂ = " + L.fmt(d.s2, 3) + (d.flip ? ", and det A < 0, so U includes a reflection." : "."); }
+    document.querySelectorAll("#presets button").forEach((b) => b.classList.toggle("on", L.close(b.dataset.m.split(",").map(Number), st.m)));
+  }
+
+  function setS(s) { st.s = s; $("s").value = s; $("s-out").textContent = s.toFixed(2); }
+  function recompute() { d = L.svd2(st.m); readout(); P.render(); }
+
+  async function animateTo(target, ms) {
+    st.playing = true;
+    const from = st.s;
+    const ok = await L.tween(ms, (t) => { setS(from + (target - from) * t); P.render(); }, "svd");
+    if (ok) { setS(target); st.playing = false; readout(); P.render(); }
+    return ok;
+  }
+  async function playAll() {
+    L.tween.cancel("svd");
+    setS(0); P.render();
+    if (!(await L.wait(400, "svd"))) return;
+    for (const tgt of [1, 2, 3]) {
+      if (!(await animateTo(tgt, 1100))) return;
+      if (tgt < 3 && !(await L.wait(350, "svd"))) return;
+    }
+  }
+  $("play").addEventListener("click", playAll);
+  [["st1", 0, 1], ["st2", 1, 2], ["st3", 2, 3]].forEach(([id, a, b]) =>
+    $(id).addEventListener("click", () => { L.tween.cancel("svd"); setS(a); animateTo(b, 1000); }));
+  $("st0").addEventListener("click", () => { L.tween.cancel("svd"); st.playing = false; animateTo(0, 600); });
+  $("s").addEventListener("input", () => { L.tween.cancel("svd"); st.playing = false; setS(+$("s").value); P.render(); });
+  document.querySelectorAll("#presets button").forEach((b) =>
+    b.addEventListener("click", () => { st.m = b.dataset.m.split(",").map(Number); mat.set(st.m); recompute(); playAll(); }));
+  setS(3);
+  recompute();
+
+  /* =================== Panel 2: low-rank approximation of an image =================== */
+  const H = 96, W = 128;
+  const IM = { kind: "vortex", A: null, svd: null, signed: true, k: 6 };
+
+  function makeImage(kind) {
+    const A = [];
+    if (kind === "vortex") {
+      // vorticity in the wake behind a cylinder: vortices shed alternately from the two sides drift
+      // downstream, grow and weaken; tilted cores and the spreading shear layer make the field
+      // genuinely two-dimensional (a row of round Gaussians on two lines would be exactly rank 2)
+      const vs = [];
+      for (let j = 0; j < 8; j++) {
+        const x = 0.45 + j * 0.5, side = j % 2 ? -1 : 1;
+        vs.push({ x, y: side * (0.22 + 0.05 * x) + 0.04 * Math.sin(2.3 * j), s: side * (1.15 - 0.09 * x), r: 0.11 + 0.025 * x, tilt: 0.6 * side });
+      }
+      for (let i = 0; i < H; i++) {
+        const y = 1 - (2 * (i + 0.5)) / H;
+        const row = [];
+        for (let j = 0; j < W; j++) {
+          const x = (4 * (j + 0.5)) / W;
+          let f = 0;
+          for (const v of vs) {
+            const dx = x - v.x, dy = y - v.y, u = dx + v.tilt * dy * 0.5;
+            f += v.s * Math.exp(-((u * u) / (1.6 * v.r * v.r) + (dy * dy) / (v.r * v.r)));
+          }
+          const dw = 0.16 + 0.06 * x;
+          f += 0.55 * Math.exp(-x / 3) * (-y / dw) * Math.exp(-(y * y) / (dw * dw));
+          row.push(f);
+        }
+        A.push(row);
+      }
+      return { A, signed: true };
+    }
+    if (kind === "text") {
+      const c = document.createElement("canvas");
+      c.width = W; c.height = H;
+      const g = c.getContext("2d");
+      g.fillStyle = "#000"; g.fillRect(0, 0, W, H);
+      g.fillStyle = "#fff";
+      g.font = "700 46px 'Space Grotesk', Inter, sans-serif";
+      g.textAlign = "center"; g.textBaseline = "middle";
+      g.fillText("SVD", W / 2, H / 2 - 4);
+      g.strokeStyle = "#fff"; g.lineWidth = 3;
+      g.beginPath(); g.arc(W - 18, 16, 10, 0, 2 * Math.PI); g.stroke();
+      g.fillRect(8, H - 14, W - 16, 4);
+      const px = g.getImageData(0, 0, W, H).data;
+      for (let i = 0; i < H; i++) { const row = []; for (let j = 0; j < W; j++) row.push(px[4 * (i * W + j)] / 255); A.push(row); }
+      return { A, signed: false };
+    }
+    let seed = 12345;
+    const rnd = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
+    for (let i = 0; i < H; i++) { const row = []; for (let j = 0; j < W; j++) row.push(rnd()); A.push(row); }
+    return { A, signed: false };
+  }
+
+  function loadImage(kind) {
+    IM.kind = kind;
+    const r = makeImage(kind);
+    IM.A = r.A;
+    IM.signed = r.signed;
+    IM.svd = L.svd(IM.A);
+    IM.scale = Math.max(...IM.A.map((row) => Math.max(...row.map(Math.abs)))) || 1;
+    IM.tot = IM.svd.S.reduce((s, x) => s + x * x, 0);
+    document.querySelectorAll("#imgsel button").forEach((b) => b.classList.toggle("on", b.dataset.img === kind));
+    renderImages();
+  }
+
+  function approx(k) {
+    const { U, S, V } = IM.svd, B = [];
+    for (let i = 0; i < H; i++) B.push(new Float64Array(W));
+    for (let t = 0; t < k; t++) {
+      const s = S[t];
+      if (!s) break;
+      const u = U[t], v = V[t];
+      for (let i = 0; i < H; i++) { const a = s * u[i], row = B[i]; for (let j = 0; j < W; j++) row[j] += a * v[j]; }
+    }
+    return B;
+  }
+
+  const BG = [8, 10, 15], POS = [92, 207, 255], NEG = [255, 122, 69], FG = [238, 240, 244];
+  function paint(canvas, M) {
+    const wrap = canvas.parentElement, cw = wrap.clientWidth, ch = Math.round((cw * H) / W);
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(cw * dpr); canvas.height = Math.round(ch * dpr);
+    canvas.style.width = cw + "px"; canvas.style.height = ch + "px";
+    const off = document.createElement("canvas");
+    off.width = W; off.height = H;
+    const g = off.getContext("2d"), img = g.createImageData(W, H);
+    for (let i = 0; i < H; i++)
+      for (let j = 0; j < W; j++) {
+        let v = M[i][j] / IM.scale, c;
+        if (IM.signed) { v = Math.max(-1, Math.min(1, v)); const tgt = v >= 0 ? POS : NEG, a = Math.abs(v); c = BG.map((b, q) => b + (tgt[q] - b) * a); }
+        else { v = Math.max(0, Math.min(1, v)); c = BG.map((b, q) => b + (FG[q] - b) * v); }
+        const o = 4 * (i * W + j);
+        img.data[o] = c[0]; img.data[o + 1] = c[1]; img.data[o + 2] = c[2]; img.data[o + 3] = 255;
+      }
+    g.putImageData(img, 0, 0);
+    const ctx = canvas.getContext("2d");
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(off, 0, 0, canvas.width, canvas.height);
+  }
+
+  function drawSpectrum() {
+    const c = $("spec"), w = c.parentElement.clientWidth, h = 150, dpr = window.devicePixelRatio || 1;
+    c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); c.style.height = h + "px"; c.style.width = w + "px";
+    const g = c.getContext("2d");
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, w, h);
+    const S = IM.svd.S, n = S.length, l = 44, r = 10, t = 8, b = 26;
+    const lo = -6; // log10 floor
+    const X = (i) => l + ((i + 0.5) / n) * (w - l - r);
+    const Y = (v) => t + ((0 - v) / (0 - lo)) * (h - t - b);
+    g.font = "10px 'JetBrains Mono', monospace";
+    g.fillStyle = LA.css("--muted");
+    g.strokeStyle = LA.css("--line");
+    g.lineWidth = 1;
+    for (let e = 0; e >= lo; e -= 2) {
+      const y = Math.round(Y(e)) + 0.5;
+      g.beginPath(); g.moveTo(l, y); g.lineTo(w - r, y); g.stroke();
+      g.textAlign = "right"; g.textBaseline = "middle"; g.fillText(e === 0 ? "1" : "1e" + e, l - 6, y);
+    }
+    g.textAlign = "center"; g.textBaseline = "top";
+    [1, 24, 48, 72, 96].forEach((i) => g.fillText(String(i), X(i - 1), h - b + 6));
+    g.fillStyle = "rgba(183,255,60,0.07)";
+    g.fillRect(l, t, X(IM.k - 1) + (w - l - r) / n / 2 - l, h - t - b);
+    for (let i = 0; i < n; i++) {
+      const v = S[i] > 0 ? Math.max(lo, Math.log10(S[i] / S[0])) : lo;
+      g.fillStyle = i < IM.k ? LA.css("--la-i") : LA.css("--muted");
+      g.beginPath(); g.arc(X(i), Y(v), i < IM.k ? 2.6 : 2, 0, 2 * Math.PI); g.fill();
+    }
+  }
+
+  function renderImages() {
+    const k = IM.k, S = IM.svd.S;
+    $("k-out").textContent = k;
+    $("kname").textContent = k;
+    $("dims").textContent = H + " × " + W;
+    paint($("img0"), IM.A);
+    paint($("img1"), approx(k));
+    drawSpectrum();
+    const kept = S.slice(0, k).reduce((s, x) => s + x * x, 0);
+    const rel = Math.sqrt(Math.max(0, IM.tot - kept) / IM.tot);
+    const store = (k * (H + W + 1)) / (H * W);
+    $("rd").innerHTML =
+      "<span>numbers stored: <b>" + k * (H + W + 1) + "</b> of " + H * W + " (<b>" + (100 * store).toFixed(1) + "%</b>)</span>" +
+      "<span>relative error ‖A − A<sub>k</sub>‖<sub>F</sub> / ‖A‖<sub>F</sub> = <b>" + (100 * rel).toFixed(2) + "%</b></span>" +
+      "<span>energy kept Σσᵢ² (i ≤ k) / Σσᵢ² = <b>" + (100 * kept / IM.tot).toFixed(2) + "%</b></span>" +
+      "<span>σ₁ … σ₄ = <b>" + S.slice(0, 4).map((x) => x.toFixed(2)).join(", ") + "</b></span>";
+  }
+
+  $("k").addEventListener("input", () => { IM.k = +$("k").value; renderImages(); });
+  document.querySelectorAll("#imgsel button").forEach((b) => b.addEventListener("click", () => loadImage(b.dataset.img)));
+  if ("ResizeObserver" in window) new ResizeObserver(() => IM.svd && renderImages()).observe($("img0").parentElement);
+  window.__img = IM;
+  window.__approx = approx;
+  // fonts can arrive after first paint; redraw the lettering once they do
+  loadImage("vortex");
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (IM.kind === "text") loadImage("text"); });
+})();
+</script>
+<script src="../../../script.js"></script>
+</body>
+</html>

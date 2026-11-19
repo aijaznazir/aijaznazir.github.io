@@ -706,6 +706,75 @@
   }
   const unitN = (v) => { const n = vnorm(v); return n < 1e-12 ? v.map(() => 0) : vscale(v, 1 / n); };
 
+
+  /* ---------- singular value decomposition (one-sided Jacobi, Hestenes) ----------
+     M: array of m rows with n entries. Returns { U, S, V } with k = min(m, n):
+     U = k columns of length m, S = k singular values (descending), V = k columns of length n,
+     so that M = Σ S[i] · U[i] · V[i]ᵀ. Columns for zero singular values are returned as zero vectors. */
+  function svd(M) {
+    let m = M.length, n = M[0].length, tr = false;
+    let rows = M;
+    if (m < n) { rows = M[0].map((_, j) => M.map((r) => r[j])); [m, n] = [n, m]; tr = true; }
+    const C = [], W = [];
+    for (let j = 0; j < n; j++) {
+      const c = new Float64Array(m);
+      for (let i = 0; i < m; i++) c[i] = rows[i][j];
+      C.push(c);
+      const w = new Float64Array(n);
+      w[j] = 1;
+      W.push(w);
+    }
+    const dotA = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) s += a[i] * b[i]; return s; };
+    for (let sweep = 0; sweep < 80; sweep++) {
+      let off = 0;
+      for (let p = 0; p < n - 1; p++)
+        for (let q = p + 1; q < n; q++) {
+          const a = dotA(C[p], C[p]), b = dotA(C[q], C[q]), g = dotA(C[p], C[q]);
+          if (a === 0 || b === 0) continue;
+          const rel = Math.abs(g) / Math.sqrt(a * b);
+          if (rel < 1e-15) continue;
+          off = Math.max(off, rel);
+          const z = (b - a) / (2 * g);
+          const t = (z >= 0 ? 1 : -1) / (Math.abs(z) + Math.sqrt(1 + z * z));
+          const c = 1 / Math.sqrt(1 + t * t), s = c * t;
+          const cp = C[p], cq = C[q], wp = W[p], wq = W[q];
+          for (let i = 0; i < m; i++) { const x = cp[i], y = cq[i]; cp[i] = c * x - s * y; cq[i] = s * x + c * y; }
+          for (let i = 0; i < n; i++) { const x = wp[i], y = wq[i]; wp[i] = c * x - s * y; wq[i] = s * x + c * y; }
+        }
+      if (off < 1e-13) break;
+    }
+    const idx = C.map((c, j) => [Math.sqrt(dotA(c, c)), j]).sort((x, y) => y[0] - x[0]);
+    const S = [], U = [], V = [];
+    const tiny = (idx[0][0] || 1) * 1e-13;
+    for (const [sig, j] of idx) {
+      S.push(sig > tiny ? sig : 0);
+      U.push(Array.from(C[j], (x) => (sig > tiny ? x / sig : 0)));
+      V.push(Array.from(W[j]));
+    }
+    return tr ? { U: V, S, V: U } : { U, S, V };
+  }
+  /* 2×2 SVD in the form A = U Σ Vᵀ with V a rotation (det V = +1); U is a rotation when det A > 0
+     and a reflection when det A < 0. Returns angles so the factors can be animated. */
+  function svd2(m) {
+    const r = svd([[m[0], m[1]], [m[2], m[3]]]);
+    let v1 = r.V[0];
+    if (v1[0] < -1e-12 || (Math.abs(v1[0]) <= 1e-12 && v1[1] < 0)) v1 = [-v1[0], -v1[1]];
+    const v2 = [-v1[1], v1[0]];
+    const s1 = r.S[0], s2 = r.S[1];
+    let u1 = s1 > 1e-12 ? scale(apply(m, v1), 1 / s1) : [1, 0];
+    let u2 = s2 > 1e-12 ? scale(apply(m, v2), 1 / s2) : [-u1[1], u1[0]];
+    const detU = u1[0] * u2[1] - u1[1] * u2[0];
+    return {
+      s1, s2, v1, v2, u1, u2,
+      V: [v1[0], v2[0], v1[1], v2[1]],
+      U: [u1[0], u2[0], u1[1], u2[1]],
+      phi: Math.atan2(v1[1], v1[0]),          // V = R(phi)
+      psi: Math.atan2(u1[1], u1[0]),          // U = R(psi) · F, F = diag(1, ±1)
+      flip: detU < 0,
+    };
+  }
+  const rot = (a) => [Math.cos(a), -Math.sin(a), Math.sin(a), Math.cos(a)];
+
   const PRESETS = {
     identity: [1, 0, 0, 1],
     rot90: [0, -1, 1, 0],
@@ -720,5 +789,6 @@
     css, I, apply, mul, det, inv, lerp, col1, col2, fromCols, norm, cross, dot, scale, add, sub, unit, perp, close,
     eig, sigmaMin, fmt, vfmt, snap, tween, wait, Plane, MatrixInput, matHTML, vecHTML, PRESETS,
     Q, rref, nullBasis, transpose, vdot, vnorm, vadd, vsub, vscale, orthonormal, projectOn, View3,
+    svd, svd2, rot,
   };
 })(window);
